@@ -1,0 +1,8 @@
+#!/usr/bin/python
+
+import os
+path = os.path.dirname(os.path.realpath(__file__)) +"/../" # path to root
+print("Path to tranci is",path)
+maintranci = path+"interface_pyqt/main.py" # main file
+os.system("python "+maintranci)  # run the main script
+

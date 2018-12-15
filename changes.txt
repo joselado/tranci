@@ -1,0 +1,4 @@
+# version 0.5
+  - added new crystal fields
+  - added excitations plot
+  - added orbitals projection

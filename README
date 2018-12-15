@@ -1,0 +1,15 @@
+# description
+This program allows to perform CI calculations for d orbitals,
+by modifying number of electrons crystal fields and spin orbit coupling
+
+# Usage
+execute "tranci" in a terminal
+
+# Compatibility
+This program work both in Mac and Linux
+
+# Disclaimer
+This is still a version under heavy development!!!
+
+# contact
+questions to jose.luis.lado@gmail.com
