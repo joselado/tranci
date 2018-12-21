@@ -1,15 +1,24 @@
-# description
+# Description #
 This program allows to perform CI calculations for d orbitals,
 by modifying number of electrons crystal fields and spin orbit coupling
 
-# Usage
+# Disclaimer #
+This is still a version under heavy development.
+
+# How to install #
+Execute the script install.py
+
+# Usage #
 execute "tranci" in a terminal
 
-# Compatibility
-This program work both in Mac and Linux
+# Dependencies #
+This library requires Python3, together with the libraries
+  - numpy
+  - scipy
+  - matplotlib
 
-# Disclaimer
-This is still a version under heavy development!!!
+the pdflatex command should be installed in order in the system
 
-# contact
-questions to jose.luis.lado@gmail.com
+# Compatibility #
+This program works both in Mac and Linux.
+

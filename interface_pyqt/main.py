@@ -15,6 +15,9 @@ import matplotlib.pyplot as py
 from tranci.check import check_all # check that the hamiltonian is right
 do_check = True # perform check of the hamiltonian
 
+from tranci import numberformat
+numberformat.tol = 1e-3
+
 import matplotlib.cm as cmplt
 import matplotlib
 matplotlib.rcParams.update({'font.size': 22}) # increase font size

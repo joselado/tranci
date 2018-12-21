@@ -1,6 +1,6 @@
 from . import hamiltonians
 import numpy as np
-from .format import fform
+from .numberformat import fform
 
 def write_low_energy(ls,at,n=10,ghz=False):
   """Write energies and expectation values, input is lowest states"""

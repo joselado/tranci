@@ -1,10 +1,11 @@
 # this functions write different latex documents
 
-from .format import fform
-from .format import zform
+from .numberformat import fform
+from .numberformat import zform
 from . import templates
-
+import scipy.linalg as lg
 from . import hamiltonians
+import numpy as np
 
 
 def get_gs_operators(atom,lowest):
@@ -164,6 +165,7 @@ def write_all(at,lowest,header=""):
 def matrix2latex(m,name=""):
   """ Returns a matrix in latex form """
   mstr = "\n" # initialize matrix string
+  if name !="": mstr += "\\subsection{Operator $"+name+"$}\n\n"
   n = len(m) # length of the matrix
   if n>10: 
     mstr += "\\text{Matrix too large..}"
@@ -178,6 +180,12 @@ def matrix2latex(m,name=""):
       else: mstr += "  \\"+"\\"+"\n" # last number       
   mstr += "\\end{pmatrix}\n"
   mstr += "\\end{equation}\n"
+  es = lg.eigvalsh(m) # compute eigenvalues
+  mstr += "\n \n Eigenvalues = $"
+  for i in range(len(es)):
+      mstr += zform(es[i]) # convert to string
+      if i!=(len(es)-1): mstr += ", " # only
+  mstr += "$"
   return mstr
 
 

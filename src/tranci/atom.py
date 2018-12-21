@@ -1,5 +1,8 @@
 import numpy as np
 import cmath
+from .read import read_matrix
+from .read import read_basis
+from .numberformat import zform
 
 guess_number = True
 tol = 0.01
@@ -10,7 +13,6 @@ class CIatom():
   has_nucleus = False # does not have nucleus
   def read(self,path=""):
     """ Read all the matrices of the hamiltonian"""
-    from .read import read_matrix
     try:  self.cf = read_matrix(path+"hopping.op")   # read Sx
     except: print("hopping.op not found")
     try:  self.ds2 = read_matrix(path+"ds2.op")   # read Sx
@@ -98,7 +100,6 @@ class CIatom():
       self.vc  = self.terms["vc"]
       self.ls  = self.terms["ls"]
   def get_basis(self,path=""):
-    from .read import read_basis
     self.basis = read_basis("basis.out",path) # read the basis
   def get_latex_wavefunction(self,wf):
     """ Outputs a wavefunction in latex format"""
@@ -114,7 +115,6 @@ class CIatom():
 
 
 
-from .format import zform
 
 def format_component(x):
   """Returns a string with the number correctly formatted"""
