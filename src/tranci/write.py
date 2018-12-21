@@ -8,12 +8,16 @@ from . import hamiltonians
 import numpy as np
 
 
-def get_gs_operators(atom,lowest):
+def get_gs_operators(lowest):
   """Gets the latex representation of several ground state operators"""
   def gr(m):
     """ Return the representation of a certain matrix"""
     return hamiltonians.get_representation(lowest.gs_manifold,m) # get Lz
-  mstr = "\\section{Proyection of operator on GS}\n"
+  atom = lowest.atom # get object
+  mstr = ""
+#  mstr = "\\section{g-tensor}\n"
+#  mstr += matrix2latex(lowest.gtensor) # get the matrix in latex
+  mstr += "\\section{Proyection of operator on GS}\n"
   mstr += matrix2latex(gr(atom.sx),"S_x") # get the matrix in latex
   mstr += matrix2latex(gr(atom.sy),"S_y") # get the matrix in latex
   mstr += matrix2latex(gr(atom.sz),"S_z") # get the matrix in latex
@@ -38,7 +42,7 @@ def get_gs_operators(atom,lowest):
 
 def write_gs_operators(atom,lowest):
   """Writes several operators in a file"""
-  text = get_gs_operators(atom,lowest)
+  text = get_gs_operators(lowest)
   build_latex(text,"formula")
 
 
@@ -80,9 +84,10 @@ def get_energies_table(lowest):
 
 
 
-def get_table_states(lowest,at,ghz=True):
+def get_table_states(lowest,ghz=True):
   """ Returns a string with a latex form of the energies and
   expectation values"""
+  at = lowest.atom # get the object
   table = "" # initialice the table
   table += "\\section{Eigenstates and expectation values}\n\n\n" # initialice the table
   beginning = "" # string for beggining the table
@@ -151,12 +156,13 @@ def write_manifolds(at,lowest):
 
 
 
-def write_all(at,lowest,header=""):
+def write_all(lowest,header=""):
   """ Writes all the stuff in a file"""
+  at = lowest.atom 
   text = header
   text += get_energies_table(lowest)
-  text += get_table_states(lowest,at)
-  text += get_gs_operators(at,lowest)
+  text += get_table_states(lowest)
+  text += get_gs_operators(lowest)
   text += get_manifolds(at,lowest)
   build_latex(text,"spectrum_ci")  # name of the file
 

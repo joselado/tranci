@@ -95,7 +95,7 @@ def build_hamiltonian(atom,p,gn=1./1836.):
   h = soc*atom.ls + D*atom.z2 + E*(atom.x2-atom.y2)
   if Uc != 0.0:
     h = h + Uc*atom.vc*scale_coulomb 
-    print("Added Coulomb using coulomb integrals")
+    print("Added Coulomb using Coulomb integrals")
   if U != 0.0: # Add coulomb by symmetry
     try:
       h = h - U*atom.dl2/3. # maximize L2
@@ -152,13 +152,19 @@ def eigenvalues(h,n=20):
 class lowest_states():
   """ Class for the lowest states"""
   has_degeneracies = False # if degeneracies have been calculated
-  def __init__(self,h,n=10):
+  def __init__(self,h,n=10,atom=None):
     self.h = h # hamiltonian
+    self.atom = atom # Atom object
     evals,evecs = eigenstates(h,n=10)
     evals = evals - np.min(evals)
     self.evals = np.array([round(e,ntol) for e in evals]) # round values
     self.evals_full = np.array([round(e,ntol_ene) for e in evals]) # round values
     self.evecs = evecs
+  def get_gtensor(self):
+    """Compute the gtensor"""
+    if self.atom is None: raise
+    from .gtensor import get_gtensor
+    self.gtensor = get_gtensor(self.atom,self.h)
   def get_gs_degeneracy(self):
     """Gets the degeneracy of each manifold"""
     me = np.min(self.evals) # minimum energy

@@ -89,9 +89,11 @@ def initialize_one_shot(dummy):
   m = hamiltonians.build_hamiltonian(at,p) # get the hamiltonian
   if do_check:  check_all(at) # check the hamiltonian
   header = hamiltonians.latex_DE(at,p) # string for the hamiltonian
-  ls = lowest_states(m) # create the object
-  ls.disentangle_manifolds(at.jz)
-  write.write_all(at,ls,header=header)
+  ls = lowest_states(m,atom=at) # create the object
+  ls.disentangle_manifolds(at.jz) # disentangle manifold
+#  ls.get_gtensor() # compute gfactor
+#  exit()
+  write.write_all(ls,header=header) # write Latex file
   os.system("pdflatex spectrum_ci.tex")
   os.system("pdflatex spectrum_ci.tex") # do it twice
   os.system("cp spectrum_ci.pdf ../") # copy to the previous folder
@@ -136,7 +138,7 @@ def initialize_sweep():
     elif stype == "Phi_J": p.j = get_b(p.jabs,p.theta_j,x)
     else: raise # raise error
     m = hamiltonians.build_hamiltonian(at,p) # get the hamiltonian
-    ls = lowest_states(m) # perform the calculation 
+    ls = lowest_states(m,atom=at) # perform the calculation 
     return ls # return the object
   return fsweep # return function
 
