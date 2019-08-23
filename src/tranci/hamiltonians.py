@@ -205,6 +205,10 @@ class lowest_states():
     mani = [disentangle_manifold(wfl,a) for wfl in self.manifolds]
     self.manifolds = mani # put new manifolds
     self.gs_manifold = mani[0] # put new manifold
+    waves = [] # empty list
+    for m in mani:
+        for w in m: waves.append(w)
+    self.evecs = np.array(waves) # store disentangled waves
   def disentangle_gs_manifold(self,a):
     """ Disentangle the manifolds according to an operator"""
     self.get_gs_manifold() # get the manifolds
