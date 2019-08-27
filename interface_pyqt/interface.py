@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'interface.ui'
 #
-# Created by: PyQt5 UI code generator 5.9.2
+# Created by: PyQt5 UI code generator 5.11.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -51,6 +51,7 @@ class Ui_MainWindow(object):
         self.gridLayout_9.setObjectName("gridLayout_9")
         self.sweep_variable = QtWidgets.QComboBox(self.tab_8)
         self.sweep_variable.setObjectName("sweep_variable")
+        self.sweep_variable.addItem("")
         self.sweep_variable.addItem("")
         self.sweep_variable.addItem("")
         self.sweep_variable.addItem("")
@@ -153,6 +154,9 @@ class Ui_MainWindow(object):
         self.label_23 = QtWidgets.QLabel(self.tab_6)
         self.label_23.setObjectName("label_23")
         self.gridLayout_12.addWidget(self.label_23, 1, 0, 1, 1)
+        self.save_tranci = QtWidgets.QPushButton(self.tab_6)
+        self.save_tranci.setObjectName("save_tranci")
+        self.gridLayout_12.addWidget(self.save_tranci, 2, 0, 1, 2)
         self.gridLayout_14.addLayout(self.gridLayout_12, 0, 0, 1, 1)
         self.tabWidget_3.addTab(self.tab_6, "")
         self.gridLayout_17.addWidget(self.tabWidget_3, 0, 0, 1, 1)
@@ -289,7 +293,7 @@ class Ui_MainWindow(object):
         self.gridLayout_21.addWidget(self.groupBox, 0, 2, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1187, 25))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1187, 28))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
@@ -316,13 +320,14 @@ class Ui_MainWindow(object):
         self.sweep_variable.setItemText(2, _translate("MainWindow", "z^4"))
         self.sweep_variable.setItemText(3, _translate("MainWindow", "x^2-y^2"))
         self.sweep_variable.setItemText(4, _translate("MainWindow", "x^4+y^4+z^4"))
-        self.sweep_variable.setItemText(5, _translate("MainWindow", "B"))
-        self.sweep_variable.setItemText(6, _translate("MainWindow", "theta_B"))
-        self.sweep_variable.setItemText(7, _translate("MainWindow", "phi_B"))
-        self.sweep_variable.setItemText(8, _translate("MainWindow", "J"))
-        self.sweep_variable.setItemText(9, _translate("MainWindow", "theta_J"))
-        self.sweep_variable.setItemText(10, _translate("MainWindow", "phi_J"))
-        self.sweep_variable.setItemText(11, _translate("MainWindow", "U"))
+        self.sweep_variable.setItemText(5, _translate("MainWindow", "(x+y+z)^2"))
+        self.sweep_variable.setItemText(6, _translate("MainWindow", "B"))
+        self.sweep_variable.setItemText(7, _translate("MainWindow", "theta_B"))
+        self.sweep_variable.setItemText(8, _translate("MainWindow", "phi_B"))
+        self.sweep_variable.setItemText(9, _translate("MainWindow", "J"))
+        self.sweep_variable.setItemText(10, _translate("MainWindow", "theta_J"))
+        self.sweep_variable.setItemText(11, _translate("MainWindow", "phi_J"))
+        self.sweep_variable.setItemText(12, _translate("MainWindow", "U"))
         self.label_16.setText(_translate("MainWindow", "Parameter to sweep"))
         self.label_19.setText(_translate("MainWindow", "Steps"))
         self.label_17.setText(_translate("MainWindow", "Initial"))
@@ -365,6 +370,8 @@ class Ui_MainWindow(object):
         self.tol_ene.setText(_translate("MainWindow", "0.001"))
         self.label_22.setText(_translate("MainWindow", "Maximum number of eigenfunctions"))
         self.label_23.setText(_translate("MainWindow", "Energy tolerancy [eV]"))
+        self.save_tranci.setToolTip(_translate("MainWindow", "Save data in the current folder"))
+        self.save_tranci.setText(_translate("MainWindow", "Save data"))
         self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab_6), _translate("MainWindow", "Control"))
         self.groupBox.setTitle(_translate("MainWindow", "Parameters"))
         self.label.setText(_translate("MainWindow", "U [eV]"))

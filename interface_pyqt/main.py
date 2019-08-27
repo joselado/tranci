@@ -1,6 +1,7 @@
 import os
 import sys
 mainpath = os.path.dirname(os.path.realpath(__file__))
+original_path = os.getcwd() # original path where tranci is being executed
 tranciroot = mainpath +"/../" # root to tranci
 sys.path.append(tranciroot+"/src/") # add tranci library
 sys.path.append(mainpath) # add this folder
@@ -15,6 +16,8 @@ import matplotlib.pyplot as py
 from tranci.check import check_all # check that the hamiltonian is right
 do_check = True # perform check of the hamiltonian
 
+print("Tranci has been executed in",original_path)
+
 from tranci import numberformat
 numberformat.tol = 1e-3
 
@@ -27,15 +30,32 @@ get = qtwrap.get  # get the value of a certain variable
 getbox = qtwrap.getbox  # get the value of a certain variable
 window = qtwrap.main() # this is the main interface
 
-
+## random name for the temporal folder
+temporal_folder = "/tmp/tranci_tmp_"+str(np.random.randint(10000))
 
 # go to a temporal folder
-tmpfol = "/tmp/tranci_tmp"
-os.system("rm -rf "+tmpfol) # remove temporal folder
-os.system("mkdir "+tmpfol) # remove temporal folder
-os.chdir(tmpfol) # go to the temporal folder
+def restart_tranci():
+  """Fully restart tranci"""
+  tmpfol = temporal_folder
+  print("Temporal Tranci folder is",tmpfol)
+  os.system("rm -rf "+tmpfol) # remove temporal folder
+  os.system("mkdir "+tmpfol) # remove temporal folder
+  os.chdir(tmpfol) # go to the temporal folder
+
+def save_tranci():
+    """Save the generated data in a file"""
+    save_folder = original_path+"/tranci_data" # name of the folder
+    def tcopy(a): 
+        os.system("cp "+temporal_folder+"/"+a+" "+save_folder+" 2>/dev/null")
+    os.system("mkdir "+save_folder+" 2>/dev/null")
+    tcopy("*.tex")
+    tcopy("*.pdf")
+    tcopy("*.OUT")
+    print("Saved tranci data in ",save_folder)
 
 
+
+restart_tranci() # restart tranci
 
 
 def show_pdf(dummy):
@@ -130,12 +150,13 @@ def initialize_sweep():
     elif stype == "z^4": p.z4 = x
     elif stype == "x^2y^2": p.x4y2 = x
     elif stype == "x^4+y^4+z^4": p.O = x
+    elif stype == "(x+y+z)^2": p.trigonal = x
     elif stype == "B": p.b = get_b(x,p.theta_b,p.phi_b)
-    elif stype == "Theta_B": p.b = get_b(p.babs,x,p.phi_b)
-    elif stype == "Phi_B": p.b = get_b(p.babs,p.theta_b,x)
+    elif stype == "theta_B": p.b = get_b(p.babs,x,p.phi_b)
+    elif stype == "phi_B": p.b = get_b(p.babs,p.theta_b,x)
     elif stype == "J": p.j = get_b(x,p.theta_j,p.phi_j)
-    elif stype == "Theta_J": p.j = get_b(p.jabs,x,p.phi_j)
-    elif stype == "Phi_J": p.j = get_b(p.jabs,p.theta_j,x)
+    elif stype == "theta_J": p.j = get_b(p.jabs,x,p.phi_j)
+    elif stype == "phi_J": p.j = get_b(p.jabs,p.theta_j,x)
     else: raise # raise error
     m = hamiltonians.build_hamiltonian(at,p) # get the hamiltonian
     ls = lowest_states(m,atom=at) # perform the calculation 
@@ -169,8 +190,11 @@ def plot_eigenvalues(write=True,center=True):
     ys = np.array(ys) # convert to array, row is eigenvalue evolving
   # now plot
   colors = cmplt.rainbow(np.linspace(0, 1, len(ys))) # different colors
+  fo = open("EIGENVALUES.OUT","w")
   for (y,c) in zip(ys,colors): # loop over eigenvalue
     py.plot(xs,y,marker="o",c=c) 
+    for (ix,iy) in zip(xs,y): fo.write(str(ix)+" "+str(iy)+"\n")
+  fo.close()
   py.xlim([min(xs),max(xs)]) # 
   py.ylabel("Energy [eV]")  # label for the y axis
   stype = getbox("sweep_variable")
@@ -206,6 +230,7 @@ def plot_degeneracy(dummy):
   fig = py.figure() # create figure
   fig.subplots_adjust(.2,.15) # adjust the subplots
   py.plot(xs,ds,c="green",marker="o") 
+  np.savetxt("DEGENERACY.OUT",np.array([xs,ds]).T) # save data
   py.xlim([min(xs),max(xs)]) # 
   py.ylim([0,max(ds)+1]) # 
   py.ylabel("Degeneracy")  # label for the y axis
@@ -266,9 +291,14 @@ def plot_operator(dummy):
   evals = [g.get_gs_projected_eigenvalues(op) for g in gst] # get op eigen 
   fig = py.figure() # create figure
   fig.subplots_adjust(.2,.15) # adjust the subplots
+  #############
+  fo = open("OPERATOR_VALUES.OUT","w")
   for (x,y) in zip(xs,evals):
     colors = cmplt.rainbow(np.linspace(0, 1, len(y))) # different colors
-    py.scatter([x for iy in y],y,c=colors) 
+    xplot = [x for iy in y]
+    py.scatter(xplot,y,c=colors) 
+    for (ix,iy) in zip(xplot,y): fo.write(str(ix)+" "+str(iy)+"\n")
+  fo.close() # close file
   py.xlim([min(xs),max(xs)]) # 
 #  py.ylim([min(evals),max(evals)]) # 
   py.ylabel(oname)  # label for the y axis
@@ -305,6 +335,7 @@ signals["plot_excitations"] = plot_excitations  # initialize and run
 signals["plot_degeneracy"] = plot_degeneracy  # initialize and run
 signals["plot_operator"] = plot_operator  # initialize and run
 signals["show_pdf"] = show_pdf  # show pdf with the results
+signals["save_tranci"] = save_tranci  # show pdf with the results
 
 window.connect_clicks(signals) 
 window.run()

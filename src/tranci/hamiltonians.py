@@ -19,6 +19,7 @@ def latex_DE(atom,p):
   E = p.E
   U = p.U
   soc = p.soc
+  tri = p.trigonal
   O = p.O
   z4 = p.z4
   j = p.j
@@ -33,6 +34,7 @@ def latex_DE(atom,p):
   if D != 0.0: form += str(D) + "l_z^2 + "
   if E != 0.0: form += str(E) + "(l_x^2 - l_y^2)  +"
   if O != 0.0: form += str(O) + "(l_x^4 + l_y^4 + l_z^4)  +"
+  if tri != 0.0: form += str(tri) + "(l_x + l_y + l_z)^2  +"
   if z4 != 0.0: form += str(z4) + "l_z^4  +"
   if x2y2 != 0.0: form += str(x2y2) + "l_x^2l_y^2 + l_y^2l_x^2"
   if soc != 0.0: form += str(soc) + "\\vec l \\cdot \\vec s  +"
