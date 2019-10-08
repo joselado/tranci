@@ -260,6 +260,8 @@ def plot_operator(dummy):
   if (oname=="Sx"): op = at.sx     # get this operator 
   elif (oname=="Sy"): op = at.sy   # get this operator 
   elif (oname=="Sz"): op = at.sz   # get this operator 
+  elif (oname=="S_(111)"): op = (at.sz + at.sx + at.sy)/np.sqrt(3)
+  elif (oname=="L_(111)"): op = (at.lz + at.lx + at.ly)/np.sqrt(3)
   elif (oname=="Jx"): op = at.jx   # get this operator
   elif (oname=="Jy"): op = at.jy   # get this operator
   elif (oname=="Jz"): op = at.jz   # get this operator
@@ -272,6 +274,7 @@ def plot_operator(dummy):
   elif (oname=="x2"): op = at.x2   # get this operator 
   elif (oname=="y2"): op = at.y2   # get this operator 
   elif (oname=="z2"): op = at.z2   # get this operator 
+  elif (oname=="LS"): op = at.ls   # get this operator 
   elif (oname=="up m=-2"): op = at.um2   # get this operator 
   elif (oname=="up m=-1"): op = at.um1   # get this operator 
   elif (oname=="up m=0"): op = at.u0   # get this operator 
@@ -301,7 +304,7 @@ def plot_operator(dummy):
   fo.close() # close file
   py.xlim([min(xs),max(xs)]) # 
 #  py.ylim([min(evals),max(evals)]) # 
-  py.ylabel(oname)  # label for the y axis
+  py.ylabel("$\\langle "+oname+"\\rangle$")  # label for the y axis
   stype = getbox("sweep_variable")
   if stype in ["Phi","Theta"]: py.xlabel(stype+" [rad]")  # label for the x axis
   else: py.xlabel(stype+"  [eV]")  # label for the y axis

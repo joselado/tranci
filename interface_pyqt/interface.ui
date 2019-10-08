@@ -80,9 +80,237 @@
            <string>Sweep</string>
           </attribute>
           <layout class="QGridLayout" name="gridLayout_15">
-           <item row="0" column="0">
-            <layout class="QGridLayout" name="gridLayout_9">
+           <item row="1" column="0" colspan="2">
+            <layout class="QGridLayout" name="gridLayout_13">
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_24">
+               <property name="text">
+                <string>Operator</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QComboBox" name="operator_name">
+               <property name="toolTip">
+                <string>Operator used to compute expectation values</string>
+               </property>
+               <item>
+                <property name="text">
+                 <string>Sx</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Sy</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Sz</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Lx</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Ly</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Lz</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Jx</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Jy</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Jz</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>LS</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>L2</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>S2</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>J2</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>x2</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>y2</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>z2</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>S_(111)</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>L_(111)</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="2" column="0">
+            <layout class="QGridLayout" name="gridLayout_11">
+             <item row="1" column="0">
+              <widget class="QPushButton" name="plot_spectrum">
+               <property name="toolTip">
+                <string>Plot the spectrum of the many body system</string>
+               </property>
+               <property name="text">
+                <string>Plot spectrum</string>
+               </property>
+              </widget>
+             </item>
              <item row="2" column="0">
+              <widget class="QPushButton" name="plot_excitations">
+               <property name="toolTip">
+                <string>Plot the excitations with respect to the ground state</string>
+               </property>
+               <property name="text">
+                <string>Plot excitations</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <widget class="QPushButton" name="plot_degeneracy">
+               <property name="toolTip">
+                <string>Plot the degeneracy of the ground state</string>
+               </property>
+               <property name="text">
+                <string>Plot degeneracy</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="0">
+              <widget class="QPushButton" name="plot_operator">
+               <property name="toolTip">
+                <string>Plot the expectation value of a certain operator on the ground state manifold</string>
+               </property>
+               <property name="text">
+                <string>Plot operator</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_20">
+               <property name="text">
+                <string>Tasks</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="2" column="1">
+            <layout class="QGridLayout" name="gridLayout_10">
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_17">
+               <property name="text">
+                <string>Initial</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLineEdit" name="initial_value">
+               <property name="toolTip">
+                <string>Initial value of the sweep</string>
+               </property>
+               <property name="text">
+                <string>0.0</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="1">
+              <widget class="QLineEdit" name="final_value">
+               <property name="toolTip">
+                <string>Final value of the sweep</string>
+               </property>
+               <property name="text">
+                <string>1.0</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1">
+              <widget class="QLineEdit" name="steps">
+               <property name="toolTip">
+                <string>Number of steps in the sweep</string>
+               </property>
+               <property name="text">
+                <string>40</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="label_18">
+               <property name="text">
+                <string>Final</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="0">
+              <widget class="QLabel" name="label_19">
+               <property name="text">
+                <string>Steps</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0" colspan="2">
+              <widget class="QLabel" name="label_21">
+               <property name="text">
+                <string>Values to sweep</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="0" column="0" colspan="2">
+            <layout class="QGridLayout" name="gridLayout_9">
+             <item row="0" column="0" rowspan="2">
+              <widget class="QLabel" name="label_16">
+               <property name="text">
+                <string>Parameter to sweep</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1" rowspan="2">
               <widget class="QComboBox" name="sweep_variable">
                <item>
                 <property name="text">
@@ -147,219 +375,6 @@
                <item>
                 <property name="text">
                  <string>U</string>
-                </property>
-               </item>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_16">
-               <property name="text">
-                <string>Parameter to sweep</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item row="0" column="1" rowspan="2">
-            <layout class="QGridLayout" name="gridLayout_10">
-             <item row="3" column="0">
-              <widget class="QLabel" name="label_19">
-               <property name="text">
-                <string>Steps</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_17">
-               <property name="text">
-                <string>Initial</string>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="1">
-              <widget class="QLineEdit" name="steps">
-               <property name="toolTip">
-                <string>Number of steps in the sweep</string>
-               </property>
-               <property name="text">
-                <string>40</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QLineEdit" name="initial_value">
-               <property name="toolTip">
-                <string>Initial value of the sweep</string>
-               </property>
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QLineEdit" name="final_value">
-               <property name="toolTip">
-                <string>Final value of the sweep</string>
-               </property>
-               <property name="text">
-                <string>1.0</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_18">
-               <property name="text">
-                <string>Final</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0" colspan="2">
-              <widget class="QLabel" name="label_21">
-               <property name="text">
-                <string>Values to sweep</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item row="1" column="0" rowspan="2">
-            <layout class="QGridLayout" name="gridLayout_11">
-             <item row="1" column="0">
-              <widget class="QPushButton" name="plot_spectrum">
-               <property name="toolTip">
-                <string>Plot the spectrum of the many body system</string>
-               </property>
-               <property name="text">
-                <string>Plot spectrum</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="0">
-              <widget class="QPushButton" name="plot_excitations">
-               <property name="toolTip">
-                <string>Plot the excitations with respect to the ground state</string>
-               </property>
-               <property name="text">
-                <string>Plot excitations</string>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="0">
-              <widget class="QPushButton" name="plot_degeneracy">
-               <property name="toolTip">
-                <string>Plot the degeneracy of the ground state</string>
-               </property>
-               <property name="text">
-                <string>Plot degeneracy</string>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="0">
-              <widget class="QPushButton" name="plot_operator">
-               <property name="toolTip">
-                <string>Plot the expectation value of a certain operator on the ground state manifold</string>
-               </property>
-               <property name="text">
-                <string>Plot operator</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_20">
-               <property name="text">
-                <string>Tasks</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item row="2" column="1">
-            <layout class="QGridLayout" name="gridLayout_13">
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_24">
-               <property name="text">
-                <string>Operator</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QComboBox" name="operator_name">
-               <property name="toolTip">
-                <string>Operator used to compute expectation values</string>
-               </property>
-               <item>
-                <property name="text">
-                 <string>Sx</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Sy</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Sz</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Lx</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Ly</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Lz</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Jx</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Jy</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Jz</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>L2</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>S2</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>J2</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>x2</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>y2</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>z2</string>
                 </property>
                </item>
               </widget>
@@ -727,7 +742,7 @@
      <x>0</x>
      <y>0</y>
      <width>1187</width>
-     <height>28</height>
+     <height>25</height>
     </rect>
    </property>
   </widget>
