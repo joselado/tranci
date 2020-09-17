@@ -453,7 +453,7 @@
                 <string># of low energy wavefunctions in the effective Hamiltonian. This would be the dimensional of the local effective model (for example, 2S+1)</string>
                </property>
                <property name="text">
-                <string>-1</string>
+                <string>9</string>
                </property>
               </widget>
              </item>
@@ -559,7 +559,7 @@
                 <string>Number of electrons in the d shell</string>
                </property>
                <property name="text">
-                <string>1</string>
+                <string>2</string>
                </property>
               </widget>
              </item>
@@ -587,7 +587,7 @@
                 <string>Value of the spin-orbit coupling</string>
                </property>
                <property name="text">
-                <string>0.0</string>
+                <string>0.05</string>
                </property>
               </widget>
              </item>
@@ -660,7 +660,7 @@
                 <string>Trigonal crystal field</string>
                </property>
                <property name="text">
-                <string>0.0</string>
+                <string>0.05</string>
                </property>
               </widget>
              </item>
@@ -670,7 +670,7 @@
                 <string>Octahedral crystal field</string>
                </property>
                <property name="text">
-                <string>0.0</string>
+                <string>0.3</string>
                </property>
               </widget>
              </item>

@@ -9,6 +9,8 @@ from . import hamiltonians
 import numpy as np
 
 
+
+
 def get_gs_operators(lowest):
   """Gets the latex representation of several ground state operators"""
   def gr(m):
@@ -178,10 +180,7 @@ def get_effective_hamiltonian(lowest,n=None):
     """Return latex form of the effective Hamiltonian"""
     if n is None: return ""
     from .effectivehamiltonian import effective_hamiltonian
-    text = "\\section{Effective Hamiltonian}\n\n\n" # 
-    text += "\\begin{equation}\n"
-    text += effective_hamiltonian(lowest,n=n) # return the effective Hamiltonian
-    text += "\\end{equation}\n"
+    text = effective_hamiltonian(lowest,n=n) # return the effective Hamiltonian
     return text + "\n\n\n\n"
 
 def matrix2latex(m,name=""):

@@ -46,8 +46,9 @@ def fit_matrix(h,d,cutoff=1e-4,ntries=10):
           out[key] = x[ii]
           h0 = h0 + x[ii]*d[key]
         ii += 1 # increase counter
-#    print(np.round(h,2),"Original Hamiltonian")
-#    print(np.round(h0,2),"Computed Hamiltonian")
+    print(np.linalg.eigvalsh(h),"Original Hamiltonian")
+#    h0 = h0 + np.conjugate(h0.T)
+#    print(np.linalg.eigvalsh(h0/2.),"Computed Hamiltonian")
     return out # return the coefficients
 
 
@@ -56,12 +57,12 @@ def effective_hamiltonian(lowest,n=2,nt=2):
     """Compute the effective Hamiltonian in Latex form"""
     atom = lowest.atom # get the atom object
     dd = dict()
-    dd["S_x"] = atom.sx
-    dd["S_y"] = atom.sy
-    dd["S_z"] = atom.sz
-    dd["L_x"] = atom.lx
-    dd["L_y"] = atom.ly
-    dd["L_z"] = atom.lz
+    dd["\\bar S_x"] = atom.sx
+    dd["\\bar S_y"] = atom.sy
+    dd["\\bar S_z"] = atom.sz
+    dd["\\bar L_x"] = atom.lx
+    dd["\\bar L_y"] = atom.ly
+    dd["\\bar L_z"] = atom.lz
     for d in dd: dd[d] = dd[d].todense()
 #    for d in dd:
 #        print(d)
@@ -115,21 +116,38 @@ def effective_hamiltonian(lowest,n=2,nt=2):
     if nt>4: raise # not implemented yet
     # project onto the desired low energy manifold
     h = lowest.get_representation(lowest.h,n=n) # Hamiltonian
+    h = h - np.identity(h.shape[0])*np.trace(h)/h.shape[0] # no trace
     # now fit the Hamiltonian
     coef = fit_matrix(h,out) # fit the matrix and return dictionary
     try: del coef[("Id")]
     except: pass
     if len(coef)==0: return ""
-    return dict2latex(coef) # return the latex format
+    text = "\\section{Effective Hamiltonian}\n\n\n" #
+    text += "This is the Hamiltonian written in the low energy manifold with "+str(n)+" states\n"
+    text += "\\begin{equation}\n"
+    text +=  dict2latex(coef) # return the latex format
+    text += "\\end{equation}\n\n"
+    from .write import matrix2latex
+    ops = dict() # dictionary with effective operators
+    for key in dd: # write all the operators
+        m = lowest.get_representation(dd[key],n=n)
+        ops[key] = m # save
+    from .latexalgebra import effective_algebra
+    text += effective_algebra(ops) # write down the effective algebra
+    return text
 
 
+
+def key2latex(key):
+    out = ""
+    for k in key: out += k + "  "
+    return out
 
 
 def dict2latex(d,tol=1e-2):
     """Transform the dictionary into a latex form"""
     cs = [d[key] for key in d] # coefficients
     cmax = [iy for (ix,iy) in sorted(zip(np.abs(cs),cs))][-1] 
-    cmax = 1.
     keys = [key for key in d] # get the keys
     keys = [iy for (ix,iy) in sorted(zip(-np.abs(cs),keys))] # sort the keys
     out = "H = \n"+zform(cmax)+" [ \n" # output string
@@ -139,7 +157,7 @@ def dict2latex(d,tol=1e-2):
         if np.abs(c)<tol: continue
         if .99<c<1.01: out += "  "
         else: out += zform(c) + "  " # normalize
-        for k in key: out += k + "  "
+        out += key2latex(key) # create the name
         out += " + \n" # new line
     out += " ] \n" # last line
     return out
@@ -169,10 +187,4 @@ def acceptable_matrix(m,ops):
 def braket(a,b):
     return np.abs(np.conjugate(a).dot(b))
 
-def matrix2vector(m):
-    n = m.shape[0] # get the dimension
-    v = np.zeros(n**2,dtype=np.complex) # to a vector
-    v[0:n**2] = m.reshape(n**2)
-    return v
-
-
+from .latexalgebra import matrix2vector
