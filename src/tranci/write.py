@@ -2,6 +2,7 @@
 
 from .numberformat import fform
 from .numberformat import zform
+from .numberformat import recognise_number
 from . import templates
 import scipy.linalg as lg
 from . import hamiltonians
@@ -135,10 +136,15 @@ def write_energies(lowest):
 def get_manifolds(at,lowest):
   """Writes the ground state manifold in a file"""
   allform = "" # empty string for the total latex stuff
-  allform += "\\section{Wavefunctions}\n"
+  allform += "\\section{Wavefunctions}\n\n"
+  allform += "Coordinate axis of the wavefunctions\n $z=("
+  allform += recognise_number(at.wavefunction_z_axis[0])+" ,"
+  allform += recognise_number(at.wavefunction_z_axis[1])+" ,"
+  allform += recognise_number(at.wavefunction_z_axis[2])+") $\n"
   istate = 0 # counter for the manifold
   for vs in lowest.manifolds: # loop over manifolds
     formulas = [] # list for the formulas
+    vs = [at.rotate_wavefunction_axis(v) for v in vs] # rotate wavefunctions
     for v in vs:
       formulas.append(at.get_latex_wavefunction(v)) # get the wavefunction
     form = format_wavefunctions(formulas)
@@ -156,7 +162,7 @@ def write_manifolds(at,lowest):
 
 
 
-def write_all(lowest,header=""):
+def write_all(lowest,header="",n=None):
   """ Writes all the stuff in a file"""
   at = lowest.atom 
   text = header
@@ -164,9 +170,19 @@ def write_all(lowest,header=""):
   text += get_table_states(lowest)
   text += get_gs_operators(lowest)
   text += get_manifolds(at,lowest)
+  text += get_effective_hamiltonian(lowest,n=n)
   build_latex(text,"spectrum_ci")  # name of the file
 
 
+def get_effective_hamiltonian(lowest,n=None):
+    """Return latex form of the effective Hamiltonian"""
+    if n is None: return ""
+    from .effectivehamiltonian import effective_hamiltonian
+    text = "\\section{Effective Hamiltonian}\n\n\n" # 
+    text += "\\begin{equation}\n"
+    text += effective_hamiltonian(lowest,n=n) # return the effective Hamiltonian
+    text += "\\end{equation}\n"
+    return text + "\n\n\n\n"
 
 def matrix2latex(m,name=""):
   """ Returns a matrix in latex form """

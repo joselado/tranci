@@ -68,7 +68,7 @@ def initialize_one_shot(dummy):
   m = hamiltonians.build_hamiltonian(at,p) # get the hamiltonian
   if do_check:  check_all(at) # check the hamiltonian
   header = hamiltonians.latex_DE(at,p) # string for the hamiltonian
-  ls = lowest_states(m) # create the object
+  ls = lowest_states(m,atom=at) # create the object
   ls.disentangle_manifolds(at.jz)
   write.write_all(at,ls,header=header)
   os.system("pdflatex spectrum_ci.tex")

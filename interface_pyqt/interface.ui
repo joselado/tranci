@@ -87,6 +87,9 @@
                <property name="text">
                 <string>Operator</string>
                </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
               </widget>
              </item>
              <item row="0" column="1">
@@ -235,6 +238,9 @@
                <property name="text">
                 <string>Tasks</string>
                </property>
+               <property name="alignment">
+                <set>Qt::AlignBottom|Qt::AlignHCenter</set>
+               </property>
               </widget>
              </item>
             </layout>
@@ -297,6 +303,9 @@
                <property name="text">
                 <string>Values to sweep</string>
                </property>
+               <property name="alignment">
+                <set>Qt::AlignBottom|Qt::AlignHCenter</set>
+               </property>
               </widget>
              </item>
             </layout>
@@ -307,6 +316,9 @@
               <widget class="QLabel" name="label_16">
                <property name="text">
                 <string>Parameter to sweep</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
                </property>
               </widget>
              </item>
@@ -418,13 +430,75 @@
                </property>
               </widget>
              </item>
-             <item row="2" column="0" colspan="2">
+             <item row="3" column="0" colspan="2">
               <widget class="QPushButton" name="save_tranci">
                <property name="toolTip">
                 <string>Save data in the current folder</string>
                </property>
                <property name="text">
                 <string>Save data</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_26">
+               <property name="text">
+                <string># of WF for effective Hamiltonian</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLineEdit" name="nwf_heff">
+               <property name="toolTip">
+                <string># of low energy wavefunctions in the effective Hamiltonian. This would be the dimensional of the local effective model (for example, 2S+1)</string>
+               </property>
+               <property name="text">
+                <string>-1</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tab_5">
+          <attribute name="title">
+           <string>Advanced</string>
+          </attribute>
+          <layout class="QGridLayout" name="gridLayout_22">
+           <item row="0" column="0">
+            <layout class="QGridLayout" name="gridLayout_19">
+             <item row="0" column="0" colspan="3">
+              <widget class="QLabel" name="label_25">
+               <property name="toolTip">
+                <string>axis for the wavefunctions, controls what is the direction with respect to the initial axis to represent the harmonic and spin-part of the wavefunction</string>
+               </property>
+               <property name="text">
+                <string>z axis for the wavefunctions</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="zaxis_y">
+               <property name="text">
+                <string>0</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="2">
+              <widget class="QLineEdit" name="zaxis_z">
+               <property name="text">
+                <string>1</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLineEdit" name="zaxis_x">
+               <property name="text">
+                <string>0</string>
                </property>
               </widget>
              </item>
@@ -742,7 +816,7 @@
      <x>0</x>
      <y>0</y>
      <width>1187</width>
-     <height>25</height>
+     <height>20</height>
     </rect>
    </property>
   </widget>

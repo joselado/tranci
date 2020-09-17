@@ -39,7 +39,7 @@ def recognise_number(x):
   sq6 = np.sqrt(6.)
   sq23 = np.sqrt(3./2.)
   s3 = 1./np.sqrt(3.)
-  if x>0.: strx = ""
+  if x>=0.: strx = ""
   else: strx = "-"
   if np.abs(xa-s2)<tol: strx += "\\frac{1}{\\sqrt{2}}"
   elif np.abs(xa-s3)<tol: strx += "\\frac{1}{\\sqrt{3}}"

@@ -164,6 +164,9 @@ class lowest_states():
     self.evals = np.array([round(e,ntol) for e in evals]) # round values
     self.evals_full = np.array([round(e,ntol_ene) for e in evals]) # round values
     self.evecs = evecs
+  def get_representation(self,A,n=6):
+      """Representation of a certain operator in a basis"""
+      return get_representation(self.evecs[0:n],A)
   def get_gtensor(self):
     """Compute the gtensor"""
     if self.atom is None: raise

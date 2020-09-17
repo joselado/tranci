@@ -3,6 +3,8 @@ import cmath
 from .read import read_matrix
 from .read import read_basis
 from .numberformat import zform
+from . import algebra
+import scipy.linalg as lg
 
 guess_number = True
 tol = 0.01
@@ -10,7 +12,11 @@ tol = 0.01
 
 class CIatom():
   """Class to work with a CI atom"""
-  has_nucleus = False # does not have nucleus
+  def __init__(self):
+    self.has_nucleus = False # does not have nucleus
+    self.wavefunction_z_axis = [0.,0.,1.] # axis to represent the wavefunctions
+  def rotate_wavefunction_axis(self,v):
+      return rotate_wavefunction_axis(self,v)
   def read(self,path=""):
     """ Read all the matrices of the hamiltonian"""
     try:  self.cf = read_matrix(path+"hopping.op")   # read Sx
@@ -136,5 +142,22 @@ def get_atom(ne=None):
   at.read(path=path) # read all the matrices
   at.get_basis(path=path) # read the basis from file
   return at # return atom
+
+
+
+def rotate_wavefunction_axis(atom,v):
+    """Rotate spatial and spin axis of a wavefunction"""
+    zaxis = atom.wavefunction_z_axis # new z axis for wavefunctions
+    zaxis = algebra.normalize(zaxis) # normalize the new zaxis
+    theta = np.arccos(zaxis[2]) # theta angle
+    if theta==0.0: return v
+    rhoaxis = algebra.normalize([zaxis[0],zaxis[1],0.]) # rho axis
+    phi = np.arctan2(rhoaxis[1],rhoaxis[0]) # theta angle
+    print(theta,phi)
+    rot = lg.expm(1j*atom.jz*phi)@lg.expm(1j*atom.jy*theta)
+    return rot@v # rotate
+
+
+
 
 

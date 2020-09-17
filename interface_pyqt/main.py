@@ -58,7 +58,7 @@ def save_tranci():
 restart_tranci() # restart tranci
 
 
-def show_pdf(dummy):
+def show_pdf():
     import platform
     if platform.system()=="Linux":
       os.system("xdg-open spectrum_ci.pdf")
@@ -101,11 +101,12 @@ def read_inputs():
   p.j = get_b(p.jabs,p.theta_j,p.phi_j) # get the magnetic field
   return p
 
-def initialize_one_shot(dummy):
+def initialize_one_shot():
   """ Initialize the one shot calculation"""
   p = read_inputs() # read all the inputs
 #  os.system("cp "+ str(p.n) + "/* ./") # copy input files
   at = get_atom() # read the basis from file
+  at.wavefunction_z_axis = [get("zaxis_x"),get("zaxis_y"),get("zaxis_z")]
   m = hamiltonians.build_hamiltonian(at,p) # get the hamiltonian
   if do_check:  check_all(at) # check the hamiltonian
   header = hamiltonians.latex_DE(at,p) # string for the hamiltonian
@@ -113,9 +114,14 @@ def initialize_one_shot(dummy):
   ls.disentangle_manifolds(at.jz) # disentangle manifold
 #  ls.get_gtensor() # compute gfactor
 #  exit()
-  write.write_all(ls,header=header) # write Latex file
-  os.system("pdflatex spectrum_ci.tex")
-  os.system("pdflatex spectrum_ci.tex") # do it twice
+  if get("nwf_heff")>1: nw = int(get("nwf_heff"))
+  else: nw=None
+  write.write_all(ls,header=header,n=nw) # write Latex file
+  os.system("pdflatex spectrum_ci.tex > /dev/null 2>&1")
+  os.system("pdflatex spectrum_ci.tex > /dev/null 2>&1") # do it twice
+  print("#########################")
+  print("## PDF Summary created ##")
+  print("#########################")
   os.system("cp spectrum_ci.pdf ../") # copy to the previous folder
 
 
@@ -206,12 +212,12 @@ def plot_eigenvalues(write=True,center=True):
 
 
 
-def plot_spectrum(dummy):
+def plot_spectrum():
   """ Plot the different eigenvlaues, centered"""
   plot_eigenvalues(center=True)
 
 
-def plot_excitations(dummy):
+def plot_excitations():
   """ Plot the different eigenvlues, shifted to the GS"""
   plot_eigenvalues(center=False)
 
@@ -219,7 +225,7 @@ def get_sweep_parameters():
   return np.linspace(get("initial_value"),get("final_value"),int(get("steps"))) 
 
 
-def plot_degeneracy(dummy):
+def plot_degeneracy():
   """Plots the degeneracy of the ground state"""
   ###############################
   ###############################
@@ -244,7 +250,7 @@ def plot_degeneracy(dummy):
 
 
 
-def plot_operator(dummy):
+def plot_operator():
   """Plots the eigenvalues of a certain operator in the GS"""
   ###############################
   ###############################
