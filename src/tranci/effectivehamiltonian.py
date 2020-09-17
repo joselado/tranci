@@ -26,7 +26,10 @@ def fit_matrix(h,d,cutoff=1e-4,ntries=10):
     from scipy.optimize import minimize
     def fopt(): # perform one minimization
         x0 = np.random.random(n)-.5 # random guess
-        sol = minimize(f,x0,method="Powell")
+        sol = minimize(f,x0,method="Powell",
+                options={'xtol': 1e-6, 'ftol': 1e-6,
+                    'maxiter': 100000,
+                    'maxfev': 100000})
         x = sol.x # solution of the minimization
         x = x[0:n] #+ 1j*x[n:2*n] # redefine as complex
         error = f(x) # compute error
@@ -82,6 +85,12 @@ def effective_hamiltonian(lowest,n=2,nt=2):
             m = lowest.get_representation(m,n=n)
             if acceptable_matrix(m,out): # if the matrix can be accepted
               out[(di,dj)] = m # store this matrix
+#      for di in dd: # loop
+#        for dj in dd: # loop
+#            m = dd[di]@dd[di]@dd[dj]@dd[dj]
+#            m = lowest.get_representation(m,n=n)
+#            if acceptable_matrix(m,out): # if the matrix can be accepted
+#              out[(di,di,dj,dj)] = m # store this matrix
     # trilinear terms
     if nt>2: # bilinear terms
       for di in dd: # loop
@@ -120,11 +129,13 @@ def dict2latex(d,tol=1e-2):
     """Transform the dictionary into a latex form"""
     cs = [d[key] for key in d] # coefficients
     cmax = [iy for (ix,iy) in sorted(zip(np.abs(cs),cs))][-1] 
+    cmax = 1.
     keys = [key for key in d] # get the keys
     keys = [iy for (ix,iy) in sorted(zip(-np.abs(cs),keys))] # sort the keys
     out = "H = \n"+zform(cmax)+" [ \n" # output string
     for key in keys: # loop
         c = np.round(d[key]/cmax,3) # round the number
+        print(c,key)
         if np.abs(c)<tol: continue
         if .99<c<1.01: out += "  "
         else: out += zform(c) + "  " # normalize
@@ -146,7 +157,7 @@ def acceptable_matrix(m,ops):
         o = ops[key] # get the matrix
         vo = matrix2vector(o) # convert to vector
         out.append(vo)
-    r = np.linalg.matrix_rank(np.array(out),tol=1e-6)
+    r = np.linalg.matrix_rank(np.array(out),tol=1e-3)
     if r==(len(ops)+1): return True
     else: False
 #        proj = braket(v,vo)/(np.sqrt(braket(v,v))*np.sqrt(braket(vo,vo)))
