@@ -35,7 +35,7 @@ def return_square(keyi,m,dd):
             out += "\\begin{equation}\n"
             out += key2latex(keyi) +"  "
             out += key2latex(keyi) +"  ="
-            c = ratio(m,dd[keyk]) # ratio
+            c = ratio(dd[keyk],m) # ratio
             out += zform(c)
             out += key2latex(keyk) +"  \n"
             out += "\\end{equation}\n"
@@ -82,13 +82,13 @@ def is_proportional(a,b):
 
 
 def ratio(a,b):
-    """Check if two vectors are proportional"""
+    """Ratio between two vectors"""
     a = matrix2vector(a)
     b = matrix2vector(b)
-    out = braket(a,b)
+    out = braket(b,a)
     aa = np.sqrt(braket(a,a))
     bb = np.sqrt(braket(b,b))
-    out = out/(aa*bb) # normalize
+    out = out/(aa*aa) # normalize
     return out
 
 
