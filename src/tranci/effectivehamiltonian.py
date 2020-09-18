@@ -51,11 +51,8 @@ def fit_matrix(h,d,cutoff=1e-4,ntries=10):
 #    print(np.linalg.eigvalsh(h0/2.),"Computed Hamiltonian")
     return out # return the coefficients
 
-
-
-def effective_hamiltonian(lowest,n=2,nt=2):
-    """Compute the effective Hamiltonian in Latex form"""
-    atom = lowest.atom # get the atom object
+def get_ls_operators(atom):
+    """Return the LS operators"""
     dd = dict()
     dd["\\bar S_x"] = atom.sx
     dd["\\bar S_y"] = atom.sy
@@ -64,10 +61,59 @@ def effective_hamiltonian(lowest,n=2,nt=2):
     dd["\\bar L_y"] = atom.ly
     dd["\\bar L_z"] = atom.lz
     for d in dd: dd[d] = dd[d].todense()
-#    for d in dd:
-#        print(d)
-#        print(np.round(dd[d],2))
-#    exit()
+    return dd
+
+
+def get_sj_operators(atom):
+    """Return the SJ operators"""
+    dd = dict()
+    dd["\\bar S_x"] = atom.sx
+    dd["\\bar S_y"] = atom.sy
+    dd["\\bar S_z"] = atom.sz
+    dd["\\bar J_x"] = atom.jx
+    dd["\\bar J_y"] = atom.jy
+    dd["\\bar J_z"] = atom.jz
+    for d in dd: dd[d] = dd[d].todense()
+    return dd
+
+
+
+def get_lj_operators(atom):
+    """Return the SJ operators"""
+    dd = dict()
+    dd["\\bar L_x"] = atom.lx
+    dd["\\bar L_y"] = atom.ly
+    dd["\\bar L_z"] = atom.lz
+    dd["\\bar J_x"] = atom.jx
+    dd["\\bar J_y"] = atom.jy
+    dd["\\bar J_z"] = atom.jz
+    for d in dd: dd[d] = dd[d].todense()
+    return dd
+
+
+
+def get_lsj_operators(atom):
+    """Return the SJ operators"""
+    dd = dict()
+    dd["\\bar L_x"] = atom.lx
+    dd["\\bar L_y"] = atom.ly
+    dd["\\bar L_z"] = atom.lz
+    dd["\\bar S_x"] = atom.sx
+    dd["\\bar S_y"] = atom.sy
+    dd["\\bar S_z"] = atom.sz
+    dd["\\bar J_x"] = atom.jx
+    dd["\\bar J_y"] = atom.jy
+    dd["\\bar J_z"] = atom.jz
+    for d in dd: dd[d] = dd[d].todense()
+    return dd
+
+
+
+
+
+def get_fitting_operators(lowest,nt=2,n=2,dd=None):
+    atom = lowest.atom # get the atom object
+    if dd is None: dd = get_ls_operators(atom)
     out = dict() # dictionary
     iden = np.identity(atom.lz.shape[0]) # identity
     out[("Id")] = lowest.get_representation(iden,n=n)
@@ -86,49 +132,39 @@ def effective_hamiltonian(lowest,n=2,nt=2):
             m = lowest.get_representation(m,n=n)
             if acceptable_matrix(m,out): # if the matrix can be accepted
               out[(di,dj)] = m # store this matrix
-#      for di in dd: # loop
-#        for dj in dd: # loop
-#            m = dd[di]@dd[di]@dd[dj]@dd[dj]
-#            m = lowest.get_representation(m,n=n)
-#            if acceptable_matrix(m,out): # if the matrix can be accepted
-#              out[(di,di,dj,dj)] = m # store this matrix
-    # trilinear terms
-    if nt>2: # bilinear terms
-      for di in dd: # loop
-        for dj in dd: # loop
-          for dk in dd: # loop
-            m = dd[di]@dd[dj]@dd[dk]
-            m = lowest.get_representation(m,n=n)
-            if acceptable_matrix(m,out): # if the matrix can be accepted
-              out[(di,dj,dk)] = m # store this matrix
-    # tetralinear terms
-    if nt>3: # bilinear terms
-      for di in dd: # loop
-        for dj in dd: # loop
-          for dk in dd: # loop
-            for dl in dd: # loop
-              m = dd[di]@dd[dj]@dd[dk]@dd[dl]
-              m = lowest.get_representation(m,n=n)
-              if acceptable_matrix(m,out): # if the matrix can be accepted
-                out[(di,dj,dk)] = m # store this matrix
-    for key in out:
-        print(key)
-    if nt>4: raise # not implemented yet
-    # project onto the desired low energy manifold
+    return out
+
+
+
+
+def effective_hamiltonian(lowest,n=2,nt=2):
+    """Compute the effective Hamiltonian in Latex form"""
+    # get the Hmailtonian
     h = lowest.get_representation(lowest.h,n=n) # Hamiltonian
     h = h - np.identity(h.shape[0])*np.trace(h)/h.shape[0] # no trace
-    # now fit the Hamiltonian
-    coef = fit_matrix(h,out) # fit the matrix and return dictionary
-    try: del coef[("Id")]
-    except: pass
-    if len(coef)==0: return ""
+    atom = lowest.atom # get the atom object
+    ls = get_ls_operators(atom) # LS operators
+    sj = get_sj_operators(atom) # SJ operators
+    lj = get_lj_operators(atom) # LJ operators
     text = "\\section{Effective Hamiltonian}\n\n\n" #
     text += "This is the Hamiltonian written in the low energy manifold with "+str(n)+" states\n"
-    text += "\\begin{equation}\n"
-    text +=  dict2latex(coef) # return the latex format
-    text += "\\end{equation}\n\n"
-    from .write import matrix2latex
-    ops = dict() # dictionary with effective operators
+    ops = [ls,sj,lj] # operators
+    names = ["LS","SJ","LJ"] # names
+    for (dd,name) in zip(ops,names): # loop over pairs of effective operators
+      out = get_fitting_operators(lowest,nt=nt,n=n,dd=dd) # get the operators
+      # project onto the desired low energy manifold
+      # now fit the Hamiltonian
+      coef = fit_matrix(h,out) # fit the matrix and return dictionary
+      try: del coef[("Id")]
+      except: pass
+      if len(coef)==0: return ""
+      text += "\\subsection{Low energy Hamiltonian with "+name+" operators}"
+      text += "\\begin{equation}\n"
+      text +=  dict2latex(coef) # return the latex format
+      text += "\\end{equation}\n\n"
+      from .write import matrix2latex
+      ops = dict() # dictionary with effective operators
+    dd = get_lsj_operators(atom) # get the LSJ operators
     for key in dd: # write all the operators
         m = lowest.get_representation(dd[key],n=n)
         ops[key] = m # save
@@ -150,7 +186,9 @@ def dict2latex(d,tol=1e-2):
     cmax = [iy for (ix,iy) in sorted(zip(np.abs(cs),cs))][-1] 
     keys = [key for key in d] # get the keys
     keys = [iy for (ix,iy) in sorted(zip(-np.abs(cs),keys))] # sort the keys
-    out = "H = \n"+zform(cmax)+" [ \n" # output string
+    out = "\\begin{aligned}\n"
+    out += "H = \n"+zform(cmax)+" [ \\\\ \n" # output string
+    ik = 0 # counter
     for key in keys: # loop
         c = np.round(d[key]/cmax,3) # round the number
         print(c,key)
@@ -159,7 +197,11 @@ def dict2latex(d,tol=1e-2):
         else: out += zform(c) + "  " # normalize
         out += key2latex(key) # create the name
         out += " + \n" # new line
+        ik +=1 # increase counter
+        if ik%3==0: 
+          out += "\\\\ \n" # new line
     out += " ] \n" # last line
+    out += "\\end{aligned}\n"
     return out
 
 
