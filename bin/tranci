@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/home/joselado/apps/anaconda3/bin/python
 
 import os
 path = os.path.dirname(os.path.realpath(__file__)) +"/../" # path to root
