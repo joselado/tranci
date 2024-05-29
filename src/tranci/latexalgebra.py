@@ -59,7 +59,7 @@ def get_commutations(dd):
 def matrix2vector(m):
     """Convert a matrix into a vector"""
     n = m.shape[0] # get the dimension
-    v = np.zeros(n**2,dtype=np.complex) # to a vector
+    v = np.zeros(n**2,dtype=np.complex_) # to a vector
     v[0:n**2] = m.reshape(n**2)
     return v
 

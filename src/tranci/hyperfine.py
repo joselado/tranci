@@ -13,7 +13,7 @@ def add_nucleus(atin,s=0.5):
     return mo
   if s==0.5: 
     ns = 2 # additional size, nuclear spin
-    iden = csc_matrix(np.identity(norig,dtype=np.complex)) # identity operator
+    iden = csc_matrix(np.identity(norig,dtype=np.complex_)) # identity operator
     iz = bmat([[iden,None],[None,-iden]])/2.
     ix = bmat([[None,iden],[iden,None]])/2.
     iy = bmat([[None,-1j*iden],[1j*iden,None]])/2.
