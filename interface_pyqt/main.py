@@ -129,10 +129,12 @@ def initialize_one_shot():
 def get_atom():
   p = read_inputs() # read all the inputs
 #  os.system("cp "+ str(p.n) + "/* ./") # copy input files
-  os.system("cp "+tranciroot+"cilib/"+ str(p.n) + "/* ./") # copy input files
-  at = CIatom() # create the CI object
-  at.read() # read all the matrices
-  at.get_basis() # read the basis from file
+#  os.system("cp "+tranciroot+"cilib/"+ str(p.n) + "/* ./") # copy input files
+  from tranci import atom
+  at = atom.get_atom(ne=p.n)
+#  at = CIatom() # create the CI object
+#  at.read() # read all the matrices
+#  at.get_basis() # read the basis from file
   hamiltonians.tol = np.max([1e-8,get("tol_ene")]) 
   hamiltonians.ntol = -int(round(np.log10(hamiltonians.tol)))
   return at # return atom
@@ -144,8 +146,7 @@ def initialize_sweep():
   """Launch a sweeping calculation"""
   p = read_inputs() # read all the inputs
 #  os.system("cp "+ str(p.n) + "/* ./") # copy input files
-  os.system("cp "+tranciroot+"cilib/"+ str(p.n) + "/* ./") # copy input files
-  at = get_atom() # get the atom
+  at = get_atom()
   def fsweep(x):
     """Function to perform the sweep"""
     stype = getbox("sweep_variable") # get the variable
@@ -232,7 +233,8 @@ def plot_degeneracy():
   xs = get_sweep_parameters() # get the array
   fsweep = initialize_sweep() # get the generator function
   gst = [fsweep(ix) for ix in xs]  # create the list of objects
-  ds = [g.get_gs_multiplicity() for g in gst] # get degeneracies 
+  T = hamiltonians.tol # tolerancy
+  ds = [g.get_gs_multiplicity(T=T) for g in gst] # get degeneracies 
   fig = py.figure() # create figure
   fig.subplots_adjust(.2,.15) # adjust the subplots
   py.plot(xs,ds,c="green",marker="o") 
@@ -244,6 +246,7 @@ def plot_degeneracy():
   if stype in ["Phi","Theta"]: py.xlabel(stype+" [rad]")  # label for the x axis
   else: py.xlabel(stype + "[eV]")  # label for the y axis
   fig.set_facecolor("white")
+  py.tight_layout()
   py.show()
 
 

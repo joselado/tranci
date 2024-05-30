@@ -172,15 +172,16 @@ class lowest_states():
     if self.atom is None: raise
     from .gtensor import get_gtensor
     self.gtensor = get_gtensor(self.atom,self.h)
-  def get_gs_degeneracy(self):
+  def get_gs_degeneracy(self,T=1e-4):
     """Gets the degeneracy of each manifold"""
     me = np.min(self.evals) # minimum energy
     de = np.abs(self.evals - me) # shift energy
-    ngs = len(de[de<=tol]) # number of states within an interval
+    ngs = np.sum(np.exp(-1./T*de)) # exponential degeneracy
+#    ngs = len(de[de<=tol]) # number of states within an interval
     return ngs,me
-  def get_gs_multiplicity(self):
+  def get_gs_multiplicity(self,**kwargs):
     """Get the ground state multiplicity"""
-    return self.get_gs_degeneracy()[0]
+    return self.get_gs_degeneracy(**kwargs)[0]
   def project_operator(self,m):
     """ Gets the proyection of an operator of the low energy states"""
   def get_degeneracies(self):

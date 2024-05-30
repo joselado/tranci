@@ -130,13 +130,14 @@ def format_component(x):
 
 
 
-def get_atom(ne=None):
+def get_atom(ne=1):
   """Get an atom, by the number of electrons"""
   import os  
-  if ne is None:
-    path = os.getcwd()+"/" #
-  else:
-    path = os.environ["TRANCIROOT"]+"/cilib/"+str(ne)+"/" #
+#  if ne is None:
+#    path = os.getcwd()+"/" #
+#  else:
+  path = os.path.dirname(os.path.realpath(__file__))+"/cilib/"+str(ne)+"/" #
+  if not 0<ne<11: raise # too few/many
   print("Reading from",path)
   at = CIatom() # create the CI object
   at.read(path=path) # read all the matrices
