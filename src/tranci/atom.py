@@ -89,16 +89,20 @@ class CIatom():
   def get_basis(self):
       self.basis = read_basis("basis.out",self.path) # read the basis
   def get_latex_wavefunction(self,wf):
-    """ Outputs a wavefunction in latex format"""
-    tol = 0.01
-    strwf = [] # string for the wavefunction
-    norm = []
-    for (iwf,b) in zip(wf,self.basis):
-      if np.abs(iwf*iwf)>tol:
-        strwf.append(format_component(iwf)+"  &  "+b.get_latex())
-        norm.append(-np.abs(iwf))
-    strwf = [y for (x,y) in sorted(zip(norm,strwf))]
-    return strwf # return a list of contributions
+      """ Outputs a wavefunction in latex format"""
+      tol = 0.01
+      strwf = [] # string for the wavefunction
+      norm = []
+      for (iwf,b) in zip(wf,self.basis):
+        if np.abs(iwf*iwf)>tol:
+          strwf.append(format_component(iwf)+"  &  "+b.get_latex())
+          norm.append(-np.abs(iwf))
+      strwf = [y for (x,y) in sorted(zip(norm,strwf))]
+      return strwf # return a list of contributions
+  def get_manifolds(self,H,**kwargs):
+      """Return the lowest states object"""
+      from .hamiltonians import Lowest_States
+      return Lowest_States(H,atom=self,**kwargs)
 
 
 
@@ -169,6 +173,7 @@ def get_op_dict(self):
     terms["x2y2"] = self.x2y2
     # Coulomb
     terms["vc"] = self.vc
+    terms["Coulomb"] = self.vc
     # SOC
     terms["ls"] = self.ls
     try: terms["cf"] = self.cf
@@ -179,12 +184,28 @@ def get_op_dict(self):
     p1 = self.up1 + self.dp1
     p2 = self.up2 + self.dp2
     m2 = self.um2 + self.dm2
-#    sq2 = np.sqrt(1./2.)
+    sq2 = np.sqrt(1./2.)
     terms["m0"] = m0
     terms["m1"] = m1 + p1
     terms["m2"] = m2 + p2 
 #    terms["dxz"] = m1 - p1
 #    terms["dyz"] = m1 + p1
+    ############################################################
+    # now add the projectors in the different single particle orbitals
+    ############################################################
+    # this should be double checked
+#    At0 = get_atom(ne=1) # dummy atom to create the projectors
+#    m0 = At0.u0 + At0.d0
+#    m1 = At0.um1 + At0.dm1
+#    p1 = At0.up1 + At0.dp1
+#    p2 = At0.up2 + At0.dp2
+#    m2 = At0.um2 + At0.dm2
+#    sq2 = np.sqrt(1./2.)
+#    terms["dz2"] = self.one2many(m0) # dz2 projector
+#    terms["dx2y2"] = self.one2many(sq2*(m2+p2)) # dx2y2 projector
+#    terms["dxy"] = self.one2many(1j*sq2*(m2-p2)) # dxy projector
+#    terms["dxz"] = self.one2many(1j*sq2*(m1-p1)) # dxz projector
+#    terms["dyz"] = self.one2many(sq2*(m1+p1)) # dyz projector
     return terms
 
 

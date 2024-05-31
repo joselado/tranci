@@ -5,8 +5,8 @@ import scipy.sparse.linalg as lg
 import scipy.linalg as dlg
 import numpy as np
 
-ntol = 12 # number of decimals to consider
-ntol_ene = 12 # number of decimals to consider for the energies
+ntol = 6 # number of decimals to consider
+ntol_ene = 6 # number of decimals to consider for the energies
 tol = 10**(-ntol)
 tol_ene = 10**(-ntol_ene)
 scale_coulomb = 1.0 # constant to reproduce alejandro's results
@@ -156,14 +156,14 @@ def eigenvalues(h,n=20):
 class Lowest_States():
   """ Class for the lowest states"""
   has_degeneracies = False # if degeneracies have been calculated
-  def __init__(self,h,n=10,atom=None):
-    self.h = h # hamiltonian
-    self.atom = atom # Atom object
-    evals,evecs = eigenstates(h,n=10)
-    evals = evals - np.min(evals)
-    self.evals = np.array([np.round(e,ntol) for e in evals]) # round values
-    self.evals_full = np.array([np.round(e,ntol_ene) for e in evals]) # round values
-    self.evecs = evecs
+  def __init__(self,h,atom=None):
+      self.h = h # hamiltonian
+      self.atom = atom # Atom object
+      evals,evecs = eigenstates(h)
+      evals = evals - np.min(evals)
+      self.evals = np.array([np.round(e,ntol) for e in evals]) # round values
+      self.evals_full = np.array([np.round(e,ntol_ene) for e in evals]) # round values
+      self.evecs = evecs
   def get_representation(self,A,n=6):
       """Representation of a certain operator in a basis"""
       return get_representation(self.evecs[0:n],A)
@@ -198,7 +198,7 @@ class Lowest_States():
     """Gets the energies of the excited states"""  
     dgs = self.get_degeneracies()
     es = [d[1] for d in dgs] # return only the eigenvalues
-    es = [round(es[i] - es[0],ntol) for i in range(len(es))] # return only en diff
+    es = [np.round(es[i] - es[0],ntol) for i in range(len(es))] # return only en diff
     return es
   def get_gs_manifold(self):
     """Returns the vectors of the GS manifold"""
@@ -236,15 +236,15 @@ lowest_states = Lowest_States # alias for compatibility
 
 def get_degeneracies(arr):
   """Get the degeneracies in an array"""
-  me = min(arr) # minimum
+  me = np.min(arr) # minimum
   dg = 0
   arrrec = []
   for a in arr:
-    if abs(a-me)<tol:
+    if np.abs(a-me)<tol:
       dg += 1 # increase counter
     else:
       arrrec.append(a)
-  pdg =(dg,round(me,ntol)) # append degeneracy
+  pdg =(dg,np.round(me,ntol)) # append degeneracy
   if len(arrrec)>0: 
     return [pdg] + get_degeneracies(arrrec) # if still numbers, iterate
   else: 
