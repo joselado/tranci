@@ -82,9 +82,9 @@ def one2many_basis(m,basis,bdict=None):
   for i in range(nm): # loop over states
     for j in range(nm): # loop over states
       a = m[j,i] # matrix element
-      ii = np.zeros(on,dtype=np.int) # indexes
-      jj = np.zeros(on,dtype=np.int) # indexes
-      vals = np.zeros(on,dtype=np.complex) # values
+      ii = np.zeros(on,dtype=int) # indexes
+      jj = np.zeros(on,dtype=int) # indexes
+      vals = np.zeros(on,dtype=np.complex_) # values
       for ib in range(len(basis)): # loop over basis elements
         b = basis[ib] # get the vector
         if b[i]==0: continue # next iteration, destructor empty
@@ -140,9 +140,9 @@ def four2many(m,basis,bdict=None):
         for l in range(nm): # loop over states
           a = m(i,j,k,l) # matrix element
           if a==0: continue # skip this one
-          ii = np.zeros(on,dtype=np.int) # indexes
-          jj = np.zeros(on,dtype=np.int) # indexes
-          vals = np.zeros(on,dtype=np.complex) # values
+          ii = np.zeros(on,dtype=np.int_) # indexes
+          jj = np.zeros(on,dtype=np.int_) # indexes
+          vals = np.zeros(on,dtype=np.complex_) # values
           for ib in range(len(basis)): # loop over basis elements
             if i==j or k==l: continue # next iteration
             b = basis[ib] # get the vector

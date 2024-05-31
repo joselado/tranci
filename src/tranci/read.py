@@ -21,7 +21,7 @@ def read_matrix(namefile):
     if np.max(np.abs(mout.todense() - mout.todense().H))>0.00001: raise
     return mout
   except:
-    print("empty matrix")
+#    print("empty matrix")
     mout = csc_matrix((d,d),dtype=np.complex_) # create the matrix
     return mout 
 
@@ -51,6 +51,7 @@ def read_basis(namefile,path=""):
   for v in m:
     b = BaseMB() # create object
     b.num2occ(v) # setup the object
+    b.v = v # store the vector
     b.orb = orb # orbital atribute
     bs.append(deepcopy(b)) # add to the list
   return bs  # return the list of bassi objects

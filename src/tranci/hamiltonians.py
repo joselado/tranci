@@ -153,7 +153,7 @@ def eigenvalues(h,n=20):
 
 
 
-class lowest_states():
+class Lowest_States():
   """ Class for the lowest states"""
   has_degeneracies = False # if degeneracies have been calculated
   def __init__(self,h,n=10,atom=None):
@@ -161,8 +161,8 @@ class lowest_states():
     self.atom = atom # Atom object
     evals,evecs = eigenstates(h,n=10)
     evals = evals - np.min(evals)
-    self.evals = np.array([round(e,ntol) for e in evals]) # round values
-    self.evals_full = np.array([round(e,ntol_ene) for e in evals]) # round values
+    self.evals = np.array([np.round(e,ntol) for e in evals]) # round values
+    self.evals_full = np.array([np.round(e,ntol_ene) for e in evals]) # round values
     self.evecs = evecs
   def get_representation(self,A,n=6):
       """Representation of a certain operator in a basis"""
@@ -228,7 +228,7 @@ class lowest_states():
     return evals
 
 
-
+lowest_states = Lowest_States # alias for compatibility
 
 
 

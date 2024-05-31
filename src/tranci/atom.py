@@ -20,11 +20,11 @@ class CIatom():
   def read(self,path=""):
     """ Read all the matrices of the hamiltonian"""
     try:  self.cf = read_matrix(path+"hopping.op")   # read Sx
-    except: print("hopping.op not found")
+    except: pass #print("hopping.op not found")
     try:  self.ds2 = read_matrix(path+"ds2.op")   # read Sx
-    except: print("ds2.op not found")
+    except: pass #print("ds2.op not found")
     try:  self.dl2 = read_matrix(path+"dl2.op")   # read Sx
-    except: print("dl2.op not found")
+    except: pass #print("dl2.op not found")
     self.sx = read_matrix(path+"sx.op")   # read Sx
     self.sy = read_matrix(path+"sy.op")   # read Sy
     self.sz = read_matrix(path+"sz.op")   # read Sz
@@ -58,31 +58,12 @@ class CIatom():
     self.dp1 = read_matrix(path+"8.op")
     self.dp2 = read_matrix(path+"9.op")
     # add a dictionary
-    terms = dict()
-    terms["sx"] = self.sx
-    terms["sy"] = self.sy
-    terms["sz"] = self.sz
-    terms["lx"] = self.lx
-    terms["ly"] = self.ly
-    terms["lz"] = self.lz
-    terms["jx"] = self.jx
-    terms["jy"] = self.jy
-    terms["jz"] = self.jz
-    terms["s2"] = self.s2
-    terms["l2"] = self.l2
-    terms["j2"] = self.j2
-    terms["x2"] = self.x2
-    terms["y2"] = self.y2
-    terms["z2"] = self.z2
-    terms["x4"] = self.x4
-    terms["y4"] = self.y4
-    terms["z4"] = self.z4
-    terms["x2y2"] = self.x2y2
-    terms["vc"] = self.vc
-    terms["ls"] = self.ls
-    try: terms["cf"] = self.cf
-    except: pass
+    terms = get_op_dict(self)
     self.terms = terms
+    self.Operator = terms
+    self.path = path
+  def one2many(self,m):
+      return one2many(self,m)
   def update(self):
       self.sx  = self.terms["sx"]
       self.sy  = self.terms["sy"]
@@ -105,8 +86,8 @@ class CIatom():
       self.x2y2 = self.terms["x2y2"]
       self.vc  = self.terms["vc"]
       self.ls  = self.terms["ls"]
-  def get_basis(self,path=""):
-    self.basis = read_basis("basis.out",path) # read the basis
+  def get_basis(self):
+      self.basis = read_basis("basis.out",self.path) # read the basis
   def get_latex_wavefunction(self,wf):
     """ Outputs a wavefunction in latex format"""
     tol = 0.01
@@ -138,10 +119,11 @@ def get_atom(ne=1):
 #  else:
   path = os.path.dirname(os.path.realpath(__file__))+"/cilib/"+str(ne)+"/" #
   if not 0<ne<11: raise # too few/many
-  print("Reading from",path)
+#  print("Reading from",path)
   at = CIatom() # create the CI object
+  at.ne = ne # store number of electrons
   at.read(path=path) # read all the matrices
-  at.get_basis(path=path) # read the basis from file
+  at.get_basis() # read the basis from file
   return at # return atom
 
 
@@ -158,6 +140,65 @@ def rotate_wavefunction_axis(atom,v):
     rot = lg.expm(1j*atom.jz*phi)@lg.expm(1j*atom.jy*theta)
     return rot@v # rotate
 
+
+def get_op_dict(self):
+    """Return the dictionary with all the operators"""
+    terms = dict()
+    # spin
+    terms["sx"] = self.sx
+    terms["sy"] = self.sy
+    terms["sz"] = self.sz
+    # angular
+    terms["lx"] = self.lx
+    terms["ly"] = self.ly
+    terms["lz"] = self.lz
+    # total angular
+    terms["jx"] = self.jx
+    terms["jy"] = self.jy
+    terms["jz"] = self.jz
+    terms["s2"] = self.s2
+    terms["l2"] = self.l2
+    # crystal fields
+    terms["j2"] = self.j2
+    terms["x2"] = self.x2
+    terms["y2"] = self.y2
+    terms["z2"] = self.z2
+    terms["x4"] = self.x4
+    terms["y4"] = self.y4
+    terms["z4"] = self.z4
+    terms["x2y2"] = self.x2y2
+    # Coulomb
+    terms["vc"] = self.vc
+    # SOC
+    terms["ls"] = self.ls
+    try: terms["cf"] = self.cf
+    except: pass
+    # orbital projection
+    m0 = self.u0 + self.d0
+    m1 = self.um1 + self.dm1
+    p1 = self.up1 + self.dp1
+    p2 = self.up2 + self.dp2
+    m2 = self.um2 + self.dm2
+#    sq2 = np.sqrt(1./2.)
+    terms["m0"] = m0
+    terms["m1"] = m1 + p1
+    terms["m2"] = m2 + p2 
+#    terms["dxz"] = m1 - p1
+#    terms["dyz"] = m1 + p1
+    return terms
+
+
+
+from .edtk import states
+
+def one2many(self,m):
+    """Return an operator in the many body atom of the atom"""
+    if m.shape[0]!=10: 
+        print("Crystal field matrix must have dimension 10")
+        raise
+    basis = [b.v for b in self.basis]
+    mo = states.one2many_basis(m,basis)
+    return mo
 
 
 

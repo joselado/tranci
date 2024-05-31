@@ -208,6 +208,7 @@ def plot_eigenvalues(write=True,center=True):
   if stype in ["Phi","Theta"]: py.xlabel(stype+" [rad]")  # label for the x axis
   else: py.xlabel(stype+" [eV]")  # label for the x axis
   fig.set_facecolor("white")
+  py.tight_layout()
   py.show()
 
 
@@ -318,6 +319,7 @@ def plot_operator():
   if stype in ["Phi","Theta"]: py.xlabel(stype+" [rad]")  # label for the x axis
   else: py.xlabel(stype+"  [eV]")  # label for the y axis
   fig.set_facecolor("white")
+  py.tight_layout()
   py.show() # show graph
 
 
