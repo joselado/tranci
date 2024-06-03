@@ -64,6 +64,9 @@ class CIatom():
     self.path = path
   def one2many(self,m):
       return one2many(self,m)
+  def copy(self):
+      from copy import deepcopy
+      return deepcopy(self)
   def update(self):
       self.sx  = self.terms["sx"]
       self.sy  = self.terms["sy"]
@@ -194,7 +197,7 @@ def get_op_dict(self):
     # now add the projectors in the different single particle orbitals
     ############################################################
     # this should be double checked
-    if self.ne!=0: # more than 1 electron
+    if self.ne!=1: # more than 1 electron
         At0 = get_atom(ne=1) # dummy atom to create the projectors
     else:
         At0 = self.copy()
