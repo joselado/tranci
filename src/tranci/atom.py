@@ -194,18 +194,21 @@ def get_op_dict(self):
     # now add the projectors in the different single particle orbitals
     ############################################################
     # this should be double checked
-#    At0 = get_atom(ne=1) # dummy atom to create the projectors
-#    m0 = At0.u0 + At0.d0
-#    m1 = At0.um1 + At0.dm1
-#    p1 = At0.up1 + At0.dp1
-#    p2 = At0.up2 + At0.dp2
-#    m2 = At0.um2 + At0.dm2
-#    sq2 = np.sqrt(1./2.)
-#    terms["dz2"] = self.one2many(m0) # dz2 projector
-#    terms["dx2y2"] = self.one2many(sq2*(m2+p2)) # dx2y2 projector
-#    terms["dxy"] = self.one2many(1j*sq2*(m2-p2)) # dxy projector
-#    terms["dxz"] = self.one2many(1j*sq2*(m1-p1)) # dxz projector
-#    terms["dyz"] = self.one2many(sq2*(m1+p1)) # dyz projector
+    if self.ne!=0: # more than 1 electron
+        At0 = get_atom(ne=1) # dummy atom to create the projectors
+    else:
+        At0 = self.copy()
+    m0 = At0.u0 + At0.d0
+    m1 = At0.um1 + At0.dm1
+    p1 = At0.up1 + At0.dp1
+    p2 = At0.up2 + At0.dp2
+    m2 = At0.um2 + At0.dm2
+    sq2 = np.sqrt(1./2.)
+    terms["dz2"] = self.one2many(m0) # dz2 projector
+    terms["dx2y2"] = self.one2many(sq2*(m2+p2)) # dx2y2 projector
+    terms["dxy"] = self.one2many(1j*sq2*(m2-p2)) # dxy projector
+    terms["dxz"] = self.one2many(1j*sq2*(m1-p1)) # dxz projector
+    terms["dyz"] = self.one2many(sq2*(m1+p1)) # dyz projector
     return terms
 
 
