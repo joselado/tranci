@@ -6,13 +6,18 @@ import scipy.sparse.linalg as slg
 
 
 def dynamical_correlator(h,A,B,**kwargs):
-    return dynamical_correlator_ED(h,A,B,**kwargs)
+#    return dynamical_correlator_ED(h,A,B,**kwargs)
+#    return dynamical_correlator_kpm(h,A,B,**kwargs)
+    return dynamical_correlator_inv(h,A,B,**kwargs)
 
 
-def dynamical_correlator_kpm(h,A,B,
-        delta=1e-1,es=np.linspace(-1.,10,400)):
-    ees,wfs = algebra.lowest_states(h)
-    e0,wf0 = ees[0],wfs[0] # low energy
+def dynamical_correlator_kpm(h,A,B,wf0=None,
+        delta=3e-2,es=np.linspace(-1.,1,400)):
+    if wf0 is None:
+        ees,wfs = algebra.lowest_states(h)
+        e0,wf0 = ees[0],wfs[0] # low energy
+    else:
+        e0 = algebra.lowest_states(h)[0][0]
     A = np.conjugate(A.T)
     vi = B@wf0 # first wavefunction
     vj = A@wf0 # second wavefunction
@@ -26,29 +31,33 @@ def dynamical_correlator_kpm(h,A,B,
     return xs,np.conjugate(ys)*scale/np.pi # return correlator
 
 def dynamical_correlator_inv(h0,A,B,es=np.linspace(-1,10,600),
+        wf0=None,
         delta=3e-2,mode="cv"):
-  """Calculate a correlation function AB in a frequency window"""
-  ees,wfs = algebra.lowest_states(h0)
-  e0,wf0 = ees[0],wfs[0] # low energy
-  ## default method
-#  iden = np.identity(h0.shape[0],dtype=np.complex_) # identity
-  from scipy.sparse import identity
-  iden = identity(h0.shape[0],dtype=np.complex_) # matrix to use
-  out = []
-  for e in es: # loop over energies
-      if mode=="full": # using exact inversion
-        g1 = algebra.inv(iden*(e+e0+1j*delta)-h0)
-        g2 = algebra.inv(iden*(e+e0-1j*delta)-h0)
-        g = 1j*(g1-g2)/2./np.pi
-        op = A@g@B # operator
-        o = algebra.braket_wAw(wf0,op) # correlator
-      elif mode=="cv": # correction vector algorithm
-          o1 = solve_cv(h0,wf0,A,B,e+e0,delta=delta) # conjugate gradient
-          o2 = solve_cv(h0,wf0,A,B,e+e0,delta=-delta) # conjugate gradient
-          o = 1j*(o1 - o2)/2. # substract
-      else: raise # not recognised
-      out.append(o)
-  return es,np.array(out)/np.pi # return result
+    """Calculate a correlation function AB in a frequency window"""
+    if wf0 is None:
+        ees,wfs = algebra.lowest_states(h0)
+        e0,wf0 = ees[0],wfs[0] # low energy
+    else:
+        e0 = algebra.lowest_states(h0)[0][0]
+    ## default method
+  #  iden = np.identity(h0.shape[0],dtype=np.complex_) # identity
+    from scipy.sparse import identity
+    iden = identity(h0.shape[0],dtype=np.complex_) # matrix to use
+    out = []
+    for e in es: # loop over energies
+        if mode=="full": # using exact inversion
+          g1 = algebra.inv(iden*(e+e0+1j*delta)-h0)
+          g2 = algebra.inv(iden*(e+e0-1j*delta)-h0)
+          g = 1j*(g1-g2)/2./np.pi
+          op = A@g@B # operator
+          o = algebra.braket_wAw(wf0,op) # correlator
+        elif mode=="cv": # correction vector algorithm
+            o1 = solve_cv(h0,wf0,A,B,e+e0,delta=delta) # conjugate gradient
+            o2 = solve_cv(h0,wf0,A,B,e+e0,delta=-delta) # conjugate gradient
+            o = 1j*(o1 - o2)/2. # substract
+        else: raise # not recognised
+        out.append(o)
+    return es,np.array(out)/np.pi # return result
 
 
 

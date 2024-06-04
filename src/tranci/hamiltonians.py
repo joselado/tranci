@@ -203,6 +203,7 @@ class Lowest_States():
   def get_gs_manifold(self):
     """Returns the vectors of the GS manifold"""
     self.gs_manifold = get_gs_manifold(self.evals,self.evecs)
+    return self.gs_manifold
   def get_manifolds(self):
     """ Returns a list with the different manifolds"""
     self.manifolds = get_manifolds(self.evals,self.evecs) # store in object
@@ -225,7 +226,17 @@ class Lowest_States():
     """ Get the projected eigenvalues of a certain operator"""
     self.get_gs_manifold() # get the manifold
     evals = get_projected_eigenvalues(self.gs_manifold,A)  # diagonalize
-    return evals
+    return np.round(evals,6)
+  def get_dynamical_correlator(self,A,B=None,**kwargs):
+      if B is None: B = A
+      from .dynamicstk import dynamics
+      es,ds = 0,0
+      for wf0 in self.get_gs_manifold():
+          (ei,di) = dynamics.dynamical_correlator(self.h,
+                  A,B,wf0=wf0,**kwargs)
+          es = ei
+          ds = ds + di
+      return es,ds
 
 
 lowest_states = Lowest_States # alias for compatibility

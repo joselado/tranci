@@ -6,6 +6,8 @@ from .numberformat import zform
 from . import algebra
 import scipy.linalg as lg
 
+from .dynamicstk.algebra import dagger,trace
+
 guess_number = True
 tol = 0.01
 
@@ -58,9 +60,6 @@ class CIatom():
     self.dp1 = read_matrix(path+"8.op")
     self.dp2 = read_matrix(path+"9.op")
     # add a dictionary
-    terms = get_op_dict(self)
-    self.terms = terms
-    self.Operator = terms
     self.path = path
   def one2many(self,m):
       return one2many(self,m)
@@ -119,19 +118,23 @@ def format_component(x):
 
 
 def get_atom(ne=1):
-  """Get an atom, by the number of electrons"""
-  import os  
-#  if ne is None:
-#    path = os.getcwd()+"/" #
-#  else:
-  path = os.path.dirname(os.path.realpath(__file__))+"/cilib/"+str(ne)+"/" #
-  if not 0<ne<11: raise # too few/many
-#  print("Reading from",path)
-  at = CIatom() # create the CI object
-  at.ne = ne # store number of electrons
-  at.read(path=path) # read all the matrices
-  at.get_basis() # read the basis from file
-  return at # return atom
+    """Get an atom, by the number of electrons"""
+    import os  
+    path = os.path.dirname(os.path.realpath(__file__))+"/cilib/"+str(ne)+"/" #
+    if not 0<ne<11: raise # too few/many
+    at = CIatom() # create the CI object
+    at.ne = ne # store number of electrons
+    at.read(path=path) # read all the matrices
+    at.get_basis() # read the basis from file
+    terms = get_op_dict(at)
+    at.terms = terms
+    at.Operator = terms
+    # dictionary for single particle opeprators
+    if ne>1:
+        at.SP_Operator = get_atom(ne=1).Operator
+    else:
+        at.SP_Operator = at.Operator
+    return at # return atom
 
 
 
@@ -191,29 +194,43 @@ def get_op_dict(self):
     terms["m0"] = m0
     terms["m1"] = m1 + p1
     terms["m2"] = m2 + p2 
-#    terms["dxz"] = m1 - p1
-#    terms["dyz"] = m1 + p1
     ############################################################
     # now add the projectors in the different single particle orbitals
     ############################################################
     # this should be double checked
-#    if self.ne!=1: # more than 1 electron
-#        At0 = get_atom(ne=1) # dummy atom to create the projectors
-#    else:
-#        At0 = self.copy()
-#    m0 = At0.u0 + At0.d0
-#    m1 = At0.um1 + At0.dm1
-#    p1 = At0.up1 + At0.dp1
-#    p2 = At0.up2 + At0.dp2
-#    m2 = At0.um2 + At0.dm2
-#    sq2 = np.sqrt(1./2.)
-#    terms["dz2"] = self.one2many(m0) # dz2 projector
-#    terms["dx2y2"] = self.one2many(sq2*(m2+p2)) # dx2y2 projector
-#    terms["dxy"] = self.one2many(1j*sq2*(m2-p2)) # dxy projector
-#    terms["dxz"] = self.one2many(1j*sq2*(m1-p1)) # dxz projector
-#    terms["dyz"] = self.one2many(sq2*(m1+p1)) # dyz projector
+    if self.ne!=1: # more than 1 electron
+        At0 = get_atom(ne=1) # dummy atom to create the projectors
+    else:
+        At0 = self.copy()
+    P_0 = At0.u0 + At0.d0
+    P_m1 = At0.um1 + At0.dm1
+    P_p1 = At0.up1 + At0.dp1
+    P_p2 = At0.up2 + At0.dp2
+    P_m2 = At0.um2 + At0.dm2
+    # projectors on cartesian orbitals
+    lp = At0.lx + 1j*At0.ly
+    iden = np.identity(lp.shape[0])
+    P_dz2 = P_0
+    P_dyz = (3*iden+lp@lp)@(P_p1 + P_m1) 
+    P_dxy = (12*iden-lp@lp@lp@lp)@(P_p2 + P_m2) 
+    P_dyz = matrix2projector(P_dyz) # transform to projector
+    P_dxy = matrix2projector(P_dxy) # to projector
+    P_dxz = P_m1 + P_p1 - P_dyz # dyz
+    P_dx2y2 = P_m2 + P_p2 - P_dxy # dxy
+    # store them in the dictionary
+    terms["dz2"] = self.one2many(P_dz2) # dz2 projector
+    terms["dx2y2"] = self.one2many(P_dx2y2) # dx2y2 projector
+    terms["dxy"] = self.one2many(P_dxy) # dxy projector
+    terms["dxz"] = self.one2many(P_dxz) # dxz projector
+    terms["dyz"] = self.one2many(P_dyz) # dyz projector
     return terms
 
+def matrix2projector(m):
+    """Transfor a matrix onto a projector"""
+    m = m + dagger(m) 
+    import scipy.linalg as lg
+    m = m/np.max(lg.eigvalsh(m))
+    return m
 
 
 from .edtk import states
@@ -226,6 +243,16 @@ def one2many(self,m):
     basis = [b.v for b in self.basis]
     mo = states.one2many_basis(m,basis)
     return mo
+
+
+
+
+
+
+
+
+
+
 
 
 
