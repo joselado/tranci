@@ -130,9 +130,9 @@ def get_atom(ne=1):
     at.terms = terms
     at.Operator = terms
     # dictionary for single particle opeprators
-    if ne>1:
+    if ne>1: # for many-body, store the 1 electron matrices
         at.SP_Operator = get_atom(ne=1).Operator
-    else:
+    else: # for 1e, store a dummy copy
         at.SP_Operator = at.Operator
     return at # return atom
 
@@ -146,7 +146,7 @@ def rotate_wavefunction_axis(atom,v):
     if theta==0.0: return v
     rhoaxis = algebra.normalize([zaxis[0],zaxis[1],0.]) # rho axis
     phi = np.arctan2(rhoaxis[1],rhoaxis[0]) # theta angle
-    print(theta,phi)
+#    print(theta,phi)
     rot = lg.expm(1j*atom.jz*phi)@lg.expm(1j*atom.jy*theta)
     return rot@v # rotate
 
