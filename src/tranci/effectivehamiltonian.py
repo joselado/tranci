@@ -189,6 +189,7 @@ def get_fitting_operators(lowest,nt=2,n=2,npow=2,dd=None):
 
 def effective_hamiltonian(lowest,n=2,nt=2):
     """Compute the effective Hamiltonian in Latex form"""
+    return "" # this has to be fixed
     # get the Hmailtonian
     h = lowest.get_representation(lowest.h,n=n) # Hamiltonian
     h = h - np.identity(h.shape[0])*np.trace(h)/h.shape[0] # no trace
