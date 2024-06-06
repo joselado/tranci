@@ -22,8 +22,8 @@ def errorf(v,diff,ms,simp=1e1,cutoff=1e-6): # function to minimize
     error = jnp.mean(jnp.abs(diff)**2) # error
     zv = zv[1:] # all except identity
     coef = jnp.abs(zv)/jnp.sum(jnp.abs(zv)) # normalize
-#    coef = coef[coef>1e-8] # only big enough
-#    error = (cutoff+error)*(1.0 - simp*jnp.sum(coef*jnp.log(coef)))
+    coef = coef[coef>1e-8] # only big enough
+    error = (cutoff+error)*(1.0 - simp*jnp.sum(coef*jnp.log(coef)))
     return error
 
 errorf_jax = jit(errorf)
@@ -49,7 +49,6 @@ def fit_matrix(h,d,cutoff=1e-4,ntries=40,simp = 1e1):
         x = sol.x # solution of the minimization
         x = x[0:n] #+ 1j*x[n:2*n] # redefine as complex
         error = f(x) # compute error
-#        print("Error",error)
         return error,x # return solution
     outs = [fopt() for i in range(ntries)] # compute several
     x = [ix for (iy,ix) in sorted(outs,key=lambda x: x[0])][0] # take the smallest one
@@ -163,7 +162,7 @@ def get_fitting_operators(lowest,nt=2,n=2,npow=4,dd=None):
           for ii in range(ip-1): m = m@m # power
           if ip==0: spow = ""
           else: spow = "^"+str(ip+1)
-          m = lowest.get_representation(m,n=n)
+  #        m = lowest.get_representation(m,n=n)
   #        out[(di)] = m # store this term
           if acceptable_matrix(m,out): # if the matrix can be accepted
             out[(di+spow)] = m.copy() # store this term
@@ -179,7 +178,7 @@ def get_fitting_operators(lowest,nt=2,n=2,npow=4,dd=None):
             if ip==0: spow = ""
             else: spow = "^"+str(ip+1)
             m = mi@mj
-            m = lowest.get_representation(m,n=n)
+  #          m = lowest.get_representation(m,n=n)
   #          out[(di,dj)] = m # store this matrix
             if acceptable_matrix(m,out): # if the matrix can be accepted
               out[(di+spow,dj+spow)] = m.copy() # store this matrix
@@ -243,7 +242,6 @@ def dict2latex(d,tol=1e-2):
     nk = len(keys)
     for key in keys: # loop
         c = np.round(d[key]/cmax,4) # round the number
-#        print(c,key)
         if np.abs(c)<tol: continue
         if .99<c<1.01: out += "  "
         else: out += zform(c) + "  " # normalize
@@ -272,11 +270,6 @@ def acceptable_matrix(m,ops):
     r = np.linalg.matrix_rank(np.array(out),tol=1e-3)
     if r==(len(ops)+1): return True
     else: False
-#        proj = braket(v,vo)/(np.sqrt(braket(v,v))*np.sqrt(braket(vo,vo)))
-#        if np.abs(proj)>0.98:
-      #      print("Skipping")
-#            return False
-#    return True
 
 def braket(a,b):
     return np.abs(np.conjugate(a).dot(b))
@@ -290,7 +283,6 @@ def effective_spin_hamiltonian(lowest,H=None,n=2,nt=2,operators=None):
     # get the Hmailtonian
     if H is None: H = lowest.h
     h = lowest.get_representation(H,n=n) # Hamiltonian
-#    print(h) ; exit()
     h = h - np.identity(h.shape[0])*np.trace(h)/h.shape[0] # no trace
     atom = lowest.atom # get the atom object
     text = "Hamiltonian written in the low energy manifold with "+str(n)+" states\n"
@@ -299,6 +291,12 @@ def effective_spin_hamiltonian(lowest,H=None,n=2,nt=2,operators=None):
     else:
         ops = dict()
         for key in operators: ops[key] = atom.Operator[key]
+    # project to the low energy manifold
+    for key in ops:
+        O = lowest.get_representation(ops[key],n=n) 
+        O = renormalize_spin_operator(O) # renormalize
+        ops[key] = O # store
+#    exit()
     out = get_fitting_operators(lowest,nt=nt,n=n,dd=ops) # get the operators
     # project onto the desired low energy manifold
     # now fit the Hamiltonian
@@ -310,14 +308,19 @@ def effective_spin_hamiltonian(lowest,H=None,n=2,nt=2,operators=None):
     text +=  dict2latex(coef) # return the latex format
     text += "\\end{equation}\n\n"
     return text
-    from .write import matrix2latex
-    ops = dict() # dictionary with effective operators
-    dd = get_lsj_operators(atom) # get the LSJ operators
-    for key in dd: # write all the operators
-        m = lowest.get_representation(dd[key],n=n)
-        ops[key] = m # save
-    from .latexalgebra import effective_algebra
-    text += effective_algebra(ops) # write down the effective algebra
-    return text
+
+
+
+def renormalize_spin_operator(m):
+    """Given a spin operator, renormalize it so that
+    it looks similar to a pristine operator"""
+    from .dynamicstk import algebra
+    es = algebra.eigvalsh(m) # eigenvalues
+    es = np.abs(es) # absolute value of energies
+    es = es[es<1e-3] # positive ones
+    if len(es)>0:
+        scale = np.min(es)
+        return m/scale
+    else: return m
 
 

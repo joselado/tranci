@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from tranci.atom import get_atom
 import numpy as np
 
-ne = 3
+ne = 2
 # generate an atom class for the system you want to compute
 Atom = get_atom(ne=ne)
 # total Hamiltonian
@@ -33,8 +33,8 @@ from tranci import effectivehamiltonian
 #deg = 4
 print("Hamiltonian projected on the ",deg," lowest states")
 text = effectivehamiltonian.effective_spin_hamiltonian(M,H=H,n=deg,
-        operators=["sx","sy","sz"])
-#        operators=["sx","sy","sz","lx","ly","lz"])
+#        operators=["sx","sy","sz"])
+        operators=["sx","sy","sz","lx","ly","lz"])
 
 print(text)
 
