@@ -154,89 +154,92 @@ def eigenvalues(h,n=20):
 
 
 class Lowest_States():
-  """ Class for the lowest states"""
-  has_degeneracies = False # if degeneracies have been calculated
-  def __init__(self,h,atom=None):
-      self.h = h # hamiltonian
-      self.atom = atom # Atom object
-      evals,evecs = eigenstates(h)
-      evals = evals - np.min(evals)
-      self.evals = np.array([np.round(e,ntol) for e in evals]) # round values
-      self.evals_full = np.array([np.round(e,ntol_ene) for e in evals]) # round values
-      self.evecs = evecs
-  def get_representation(self,A,n=6):
-      """Representation of a certain operator in a basis"""
-      return get_representation(self.evecs[0:n],A)
-  def get_gtensor(self):
-    """Compute the gtensor"""
-    if self.atom is None: raise
-    from .gtensor import get_gtensor
-    self.gtensor = get_gtensor(self.atom,self.h)
-  def get_gs_degeneracy(self,T=1e-4):
-    """Gets the degeneracy of each manifold"""
-    me = np.min(self.evals) # minimum energy
-    de = np.abs(self.evals - me) # shift energy
-    ngs = np.sum(np.exp(-1./T*de)) # exponential degeneracy
-#    ngs = len(de[de<=tol]) # number of states within an interval
-    return ngs,me
-  def get_gs_multiplicity(self,**kwargs):
-    """Get the ground state multiplicity"""
-    return self.get_gs_degeneracy(**kwargs)[0]
-  def project_operator(self,m):
-    """ Gets the proyection of an operator of the low energy states"""
-  def get_degeneracies(self):
-    """ Gets the degeneracies of the states diagonalized"""
-    if not self.has_degeneracies: # if not calculated yet
-      self.degeneracies = get_degeneracies(self.evals)
-      self.has_degeneracies = True
-    return self.degeneracies
-  def get_multiplicities(self):
-    """ Get multiplicity of the manifolds"""
-    dgs = self.get_degeneracies()
-    return [d[0] for d in dgs] # return only the degeneracies
-  def get_excitations(self):
-    """Gets the energies of the excited states"""  
-    dgs = self.get_degeneracies()
-    es = [d[1] for d in dgs] # return only the eigenvalues
-    es = [np.round(es[i] - es[0],ntol) for i in range(len(es))] # return only en diff
-    return es
-  def get_gs_manifold(self):
-    """Returns the vectors of the GS manifold"""
-    self.gs_manifold = get_gs_manifold(self.evals,self.evecs)
-    return self.gs_manifold
-  def get_manifolds(self):
-    """ Returns a list with the different manifolds"""
-    self.manifolds = get_manifolds(self.evals,self.evecs) # store in object
-    return self.manifolds # return the manifolds
-  def disentangle_manifolds(self,a):
-    """ Disentangle the manifolds according to an operator"""
-    self.get_manifolds() # get the manifolds
-    mani = [disentangle_manifold(wfl,a) for wfl in self.manifolds]
-    self.manifolds = mani # put new manifolds
-    self.gs_manifold = mani[0] # put new manifold
-    waves = [] # empty list
-    for m in mani:
-        for w in m: waves.append(w)
-    self.evecs = np.array(waves) # store disentangled waves
-  def disentangle_gs_manifold(self,a):
-    """ Disentangle the manifolds according to an operator"""
-    self.get_gs_manifold() # get the manifolds
-    self.gs_manifold = disentangle_manifold(self.gs_manifold,a) 
-  def get_gs_projected_eigenvalues(self,A):
-    """ Get the projected eigenvalues of a certain operator"""
-    self.get_gs_manifold() # get the manifold
-    evals = get_projected_eigenvalues(self.gs_manifold,A)  # diagonalize
-    return np.round(evals,6)
-  def get_dynamical_correlator(self,A,B=None,**kwargs):
-      if B is None: B = A
-      from .dynamicstk import dynamics
-      es,ds = 0,0
-      for wf0 in self.get_gs_manifold():
-          (ei,di) = dynamics.dynamical_correlator(self.h,
-                  A,B,wf0=wf0,**kwargs)
-          es = ei
-          ds = ds + di
-      return es,ds
+    """ Class for the lowest states"""
+    has_degeneracies = False # if degeneracies have been calculated
+    def __init__(self,h,atom=None):
+        self.h = h # hamiltonian
+        self.atom = atom # Atom object
+        evals,evecs = eigenstates(h)
+        evals = evals - np.min(evals)
+        self.evals = np.array([np.round(e,ntol) for e in evals]) # round values
+        self.evals_full = np.array([np.round(e,ntol_ene) for e in evals]) # round values
+        self.evecs = evecs
+    def get_representation(self,A,n=6):
+        """Representation of a certain operator in a basis"""
+        return get_representation(self.evecs[0:n],A)
+    def get_gtensor(self):
+        """Compute the gtensor"""
+        if self.atom is None: raise
+        from .gtensor import get_gtensor
+        self.gtensor = get_gtensor(self.atom,self.h)
+    def get_gs_degeneracy(self,T=1e-4):
+      """Gets the degeneracy of each manifold"""
+      me = np.min(self.evals) # minimum energy
+      de = np.abs(self.evals - me) # shift energy
+      ngs = np.sum(np.exp(-1./T*de)) # exponential degeneracy
+  #    ngs = len(de[de<=tol]) # number of states within an interval
+      return ngs,me
+    def get_gs_multiplicity(self,**kwargs):
+      """Get the ground state multiplicity"""
+      return self.get_gs_degeneracy(**kwargs)[0]
+    def project_operator(self,m):
+      """ Gets the proyection of an operator of the low energy states"""
+    def get_degeneracies(self):
+      """ Gets the degeneracies of the states diagonalized"""
+      if not self.has_degeneracies: # if not calculated yet
+        self.degeneracies = get_degeneracies(self.evals)
+        self.has_degeneracies = True
+      return self.degeneracies
+    def get_multiplicities(self):
+      """ Get multiplicity of the manifolds"""
+      dgs = self.get_degeneracies()
+      return [d[0] for d in dgs] # return only the degeneracies
+    def get_excitations(self):
+      """Gets the energies of the excited states"""  
+      dgs = self.get_degeneracies()
+      es = [d[1] for d in dgs] # return only the eigenvalues
+      es = [np.round(es[i] - es[0],ntol) for i in range(len(es))] # return only en diff
+      return es
+    def get_gs_manifold(self):
+      """Returns the vectors of the GS manifold"""
+      self.gs_manifold = get_gs_manifold(self.evals,self.evecs)
+      return self.gs_manifold
+    def get_manifolds(self):
+      """ Returns a list with the different manifolds"""
+      self.manifolds = get_manifolds(self.evals,self.evecs) # store in object
+      return self.manifolds # return the manifolds
+    def disentangle_manifolds(self,a):
+      """ Disentangle the manifolds according to an operator"""
+      self.get_manifolds() # get the manifolds
+      mani = [disentangle_manifold(wfl,a) for wfl in self.manifolds]
+      self.manifolds = mani # put new manifolds
+      self.gs_manifold = mani[0] # put new manifold
+      waves = [] # empty list
+      for m in mani:
+          for w in m: waves.append(w)
+      self.evecs = np.array(waves) # store disentangled waves
+    def disentangle_gs_manifold(self,a):
+      """ Disentangle the manifolds according to an operator"""
+      self.get_gs_manifold() # get the manifolds
+      self.gs_manifold = disentangle_manifold(self.gs_manifold,a) 
+    def get_gs_projected_eigenvalues(self,A):
+      """ Get the projected eigenvalues of a certain operator"""
+      self.get_gs_manifold() # get the manifold
+      evals = get_projected_eigenvalues(self.gs_manifold,A)  # diagonalize
+      return np.round(evals,6)
+    def get_dynamical_correlator(self,A,B=None,**kwargs):
+        if B is None: B = A
+        from .dynamicstk import dynamics
+        es,ds = 0,0
+        for wf0 in self.get_gs_manifold():
+            (ei,di) = dynamics.dynamical_correlator(self.h,
+                    A,B,wf0=wf0,**kwargs)
+            es = ei
+            ds = ds + di
+        return es,ds
+    def get_correlation_entropy(self,wf):
+        from . import entropy
+        return entropy.correlation_entropy(self.atom,wf)
 
 
 lowest_states = Lowest_States # alias for compatibility
