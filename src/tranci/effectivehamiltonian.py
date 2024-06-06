@@ -22,14 +22,14 @@ def errorf(v,diff,ms,simp=1e1,cutoff=1e-6): # function to minimize
     error = jnp.mean(jnp.abs(diff)**2) # error
     zv = zv[1:] # all except identity
     coef = jnp.abs(zv)/jnp.sum(jnp.abs(zv)) # normalize
-    coef = coef[coef>1e-8] # only big enough
+#    coef = coef[coef>1e-8] # only big enough
     error = (cutoff+error)*(1.0 - simp*jnp.sum(coef*jnp.log(coef)))
     return error
 
 errorf_jax = jit(errorf)
 jacobian_jax = jit(grad(errorf,argnums=0))
 
-def fit_matrix(h,d,cutoff=1e-4,ntries=40,simp = 1e1):
+def fit_matrix(h,d,cutoff=1e-6,ntries=40,simp = 1e1):
     """Fit a matrix with a dictionary of matrices"""
     ms = np.array([d[key] for key in d]) # redefine as array
     n = len(ms) # number of matrices
@@ -148,7 +148,7 @@ def get_lsj_operators(atom):
 
 
 
-def get_fitting_operators(lowest,nt=2,n=2,npow=4,dd=None):
+def get_fitting_operators(lowest,nt=2,n=2,npow=2,dd=None):
     atom = lowest.atom # get the atom object
     if dd is None: dd = get_ls_operators(atom)
     out = dict() # dictionary
@@ -317,10 +317,10 @@ def renormalize_spin_operator(m):
     from .dynamicstk import algebra
     es = algebra.eigvalsh(m) # eigenvalues
     es = np.abs(es) # absolute value of energies
-    es = es[es<1e-3] # positive ones
+    es = es[es>1e-1] # positive ones
     if len(es)>0:
         scale = np.min(es)
         return m/scale
-    else: return m
+    else: return m*0.
 
 

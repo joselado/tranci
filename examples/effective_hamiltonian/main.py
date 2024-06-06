@@ -6,15 +6,15 @@ import matplotlib.pyplot as plt
 from tranci.atom import get_atom
 import numpy as np
 
-ne = 2
+ne = 6
 # generate an atom class for the system you want to compute
 Atom = get_atom(ne=ne)
 # total Hamiltonian
 V = Atom.Operator["Coulomb"]
-CF = -Atom.Operator["z2"] #+ 1*(Atom.Operator["x2"] - Atom.Operator["y2"])
-#CF = Atom.Operator["x4"] + Atom.Operator["y4"] + Atom.Operator["z4"]
+CF = Atom.Operator["z2"] #+ 0.2*(Atom.Operator["x2"] - Atom.Operator["y2"])
+CF += 0.03*(Atom.Operator["x4"] + Atom.Operator["y4"])
 LS = Atom.Operator["ls"]
-H0 = 4*V + 0.1*CF  # original Hamiltonian
+H0 = 4*V + 0.3*CF  # original Hamiltonian
 H = H0 + 0.1*LS # original Hamiltonian
 # degeneracy without magnetic field
 M0 = Atom.get_manifolds(H0)
@@ -33,8 +33,8 @@ from tranci import effectivehamiltonian
 #deg = 4
 print("Hamiltonian projected on the ",deg," lowest states")
 text = effectivehamiltonian.effective_spin_hamiltonian(M,H=H,n=deg,
-#        operators=["sx","sy","sz"])
-        operators=["sx","sy","sz","lx","ly","lz"])
+        operators=["sx","sy","sz"])
+#        operators=["sx","sy","sz","lx","ly","lz"])
 
 print(text)
 
