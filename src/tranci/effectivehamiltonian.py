@@ -1,55 +1,75 @@
 import numpy as np
 from . import hamiltonians
-from numba import jit
+#from numba import jit
+
+import jax
+jax.config.update('jax_platform_name', 'cpu')
+from jax import jit
+from jax import grad
+import jax.numpy as jnp
 
 #@jit(nopython=True)
-def errorf(v,diff,ms,simp=1e1): # function to minimize
-    """Error fucntion"""
+def errorf(v,diff,ms,simp=1e1,cutoff=1e-6): # function to minimize
+    """Error function"""
     n = len(ms) # number of matrices
     rv = v[0:n] # real part
 #    iv = v[n:2*n] # imaginary part
 #    zv = rv+1j*iv # complex vector
+    diff = diff.copy()
     zv = rv
     for i in range(len(ms)): # loop over ms
         diff = diff - zv[i]*ms[i] # add this contribution
-    error = np.mean(np.abs(diff)**2) # error
-    coef = np.abs(zv)/np.sum(np.abs(zv)) # normalize
-    coef = coef[coef>1e-8] # only big enough
-    error = error*(1.0 - simp*np.sum(coef*np.log(coef)))
+    error = jnp.mean(jnp.abs(diff)**2) # error
+    zv = zv[1:] # all except identity
+    coef = jnp.abs(zv)/jnp.sum(jnp.abs(zv)) # normalize
+#    coef = coef[coef>1e-8] # only big enough
+#    error = (cutoff+error)*(1.0 - simp*jnp.sum(coef*jnp.log(coef)))
     return error
 
+errorf_jax = jit(errorf)
+jacobian_jax = jit(grad(errorf,argnums=0))
 
-
-def fit_matrix(h,d,cutoff=1e-4,ntries=10,simp = 1e3):
+def fit_matrix(h,d,cutoff=1e-4,ntries=40,simp = 1e1):
     """Fit a matrix with a dictionary of matrices"""
     ms = np.array([d[key] for key in d]) # redefine as array
     n = len(ms) # number of matrices
+    mh = h.copy() # make a copy of the Hamiltonian
     def f(v): # function to minimize
-        return errorf(v,h.copy(),ms,simp=simp)
+        return errorf(v,mh,ms,simp=simp)
+    def jac(v):
+        return jacobian_jax(v,mh,ms,simp=simp)
     from scipy.optimize import minimize
     def fopt(): # perform one minimization
         x0 = np.random.random(n)-.5 # random guess
-        sol = minimize(f,x0,method="Powell",
-                options={'xtol': 1e-6, 'ftol': 1e-6,
-                    'maxiter': 100000,
-                    'maxfev': 100000})
+        sol = minimize(f,x0,jac=jac) # with the Jacobian
+#        sol = minimize(f,x0,method="Powell",
+#                options={'xtol': 1e-6, 'ftol': 1e-6,
+#                    'maxiter': 100000,
+#                    'maxfev': 100000})
         x = sol.x # solution of the minimization
         x = x[0:n] #+ 1j*x[n:2*n] # redefine as complex
         error = f(x) # compute error
-        print("Error",error)
+#        print("Error",error)
         return error,x # return solution
     outs = [fopt() for i in range(ntries)] # compute several
     x = [ix for (iy,ix) in sorted(outs,key=lambda x: x[0])][0] # take the smallest one
+    error_min = np.min([e for (e,ix) in outs])
+    print("Minimum fitting error",error_min)
     errors = []
     out = dict()
     ii = 0
-    h0 = 0.0
+    h0 = np.zeros(mh.shape)
     for key in d: # loop over the operators 
         if np.abs(x[ii])>cutoff:
           out[key] = x[ii]
           h0 = h0 + x[ii]*d[key]
+#          print(x[ii])
+#          print(np.round(d[key],2))
         ii += 1 # increase counter
-    print(np.linalg.eigvalsh(h),"Original Hamiltonian")
+    print("Original eigenvalues")
+    print(np.round(np.linalg.eigvalsh(h),6))
+    print("New eigenvalues")
+    print(np.round(np.linalg.eigvalsh(h0),6))
 #    h0 = h0 + np.conjugate(h0.T)
 #    print(np.linalg.eigvalsh(h0/2.),"Computed Hamiltonian")
     return out # return the coefficients
@@ -83,9 +103,9 @@ def get_sj_operators(atom):
 def get_s_operators(atom):
     """Return the SJ operators"""
     dd = dict()
-    dd["\\bar S_x"] = atom.sx
-    dd["\\bar S_y"] = atom.sy
-    dd["\\bar S_z"] = atom.sz
+    dd["\\hat S_x"] = atom.sx
+    dd["\\hat S_y"] = atom.sy
+    dd["\\hat S_z"] = atom.sz
     for d in dd: dd[d] = dd[d].todense()
     return dd
 
@@ -129,29 +149,40 @@ def get_lsj_operators(atom):
 
 
 
-def get_fitting_operators(lowest,nt=2,n=2,dd=None):
+def get_fitting_operators(lowest,nt=2,n=2,npow=4,dd=None):
     atom = lowest.atom # get the atom object
     if dd is None: dd = get_ls_operators(atom)
     out = dict() # dictionary
     iden = np.identity(atom.lz.shape[0]) # identity
     out[("Id")] = lowest.get_representation(iden,n=n)
     # linear terms
-    if nt>0: # linear terms
-      for di in dd: # loop
-        m = dd[di] # store this term
-        m = lowest.get_representation(m,n=n)
-#        out[(di)] = m # store this term
-        if acceptable_matrix(m,out): # if the matrix can be accepted
-          out[(di)] = m # store this term
+    for ip in range(npow):
+      if nt>0: # linear terms
+        for di in dd: # loop
+          m = dd[di] # store this term
+          for ii in range(ip-1): m = m@m # power
+          if ip==0: spow = ""
+          else: spow = "^"+str(ip+1)
+          m = lowest.get_representation(m,n=n)
+  #        out[(di)] = m # store this term
+          if acceptable_matrix(m,out): # if the matrix can be accepted
+            out[(di+spow)] = m.copy() # store this term
     # bilinear terms
-    if nt>1: # bilinear terms
-      for di in dd: # loop
-        for dj in dd: # loop
-            m = dd[di]@dd[dj]
+      if nt>1: # bilinear terms
+        for di in dd: # loop
+          for dj in dd: # loop
+            mi = dd[di]
+            mj = dd[dj]
+            for ii in range(ip-1): 
+              mi = mi@mi # power
+              mj = mj@mj # power
+            if ip==0: spow = ""
+            else: spow = "^"+str(ip+1)
+            m = mi@mj
             m = lowest.get_representation(m,n=n)
-#            out[(di,dj)] = m # store this matrix
+  #          out[(di,dj)] = m # store this matrix
             if acceptable_matrix(m,out): # if the matrix can be accepted
-              out[(di,dj)] = m # store this matrix
+              out[(di+spow,dj+spow)] = m.copy() # store this matrix
     return out
 
 
@@ -254,14 +285,20 @@ from .latexalgebra import matrix2vector
 
 
 
-def effective_spin_hamiltonian(lowest,n=2,nt=2):
+def effective_spin_hamiltonian(lowest,H=None,n=2,nt=2,operators=None):
     """Compute the effective Hamiltonian in Latex form"""
     # get the Hmailtonian
-    h = lowest.get_representation(lowest.h,n=n) # Hamiltonian
+    if H is None: H = lowest.h
+    h = lowest.get_representation(H,n=n) # Hamiltonian
+#    print(h) ; exit()
     h = h - np.identity(h.shape[0])*np.trace(h)/h.shape[0] # no trace
     atom = lowest.atom # get the atom object
     text = "Hamiltonian written in the low energy manifold with "+str(n)+" states\n"
-    ops = get_s_operators(atom) # LJ operators
+    if operators is None:
+        ops = get_s_operators(atom) # LJ operators
+    else:
+        ops = dict()
+        for key in operators: ops[key] = atom.Operator[key]
     out = get_fitting_operators(lowest,nt=nt,n=n,dd=ops) # get the operators
     # project onto the desired low energy manifold
     # now fit the Hamiltonian
