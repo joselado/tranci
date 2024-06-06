@@ -23,13 +23,13 @@ def errorf(v,diff,ms,simp=1e1,cutoff=1e-6): # function to minimize
     zv = zv[1:] # all except identity
     coef = jnp.abs(zv)/jnp.sum(jnp.abs(zv)) # normalize
 #    coef = coef[coef>1e-8] # only big enough
-    error = (cutoff+error)*(1.0 - simp*jnp.sum(coef*jnp.log(coef)))
+#    error = (cutoff+error)*(1.0 - simp*jnp.sum(coef*jnp.log(coef)))
     return error
 
 errorf_jax = jit(errorf)
 jacobian_jax = jit(grad(errorf,argnums=0))
 
-def fit_matrix(h,d,cutoff=1e-6,ntries=40,simp = 1e1):
+def fit_matrix(h,d,cutoff=1e-5,ntries=40,simp = 1e1):
     """Fit a matrix with a dictionary of matrices"""
     ms = np.array([d[key] for key in d]) # redefine as array
     n = len(ms) # number of matrices
@@ -230,7 +230,7 @@ def key2latex(key):
     return out
 
 
-def dict2latex(d,tol=1e-2):
+def dict2latex(d,tol=1e-4):
     """Transform the dictionary into a latex form"""
     cs = [d[key] for key in d] # coefficients
     cmax = [iy for (ix,iy) in sorted(zip(np.abs(cs),cs))][-1] 

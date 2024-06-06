@@ -6,13 +6,12 @@ import matplotlib.pyplot as plt
 from tranci.atom import get_atom
 import numpy as np
 
-ne = 6
+ne = 2
 # generate an atom class for the system you want to compute
 Atom = get_atom(ne=ne)
 # total Hamiltonian
 V = Atom.Operator["Coulomb"]
 CF = Atom.Operator["z2"] #+ 0.2*(Atom.Operator["x2"] - Atom.Operator["y2"])
-CF += 0.03*(Atom.Operator["x4"] + Atom.Operator["y4"])
 LS = Atom.Operator["ls"]
 H0 = 4*V + 0.3*CF  # original Hamiltonian
 H = H0 + 0.1*LS # original Hamiltonian
