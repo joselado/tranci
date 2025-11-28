@@ -17,12 +17,12 @@ def read_matrix(namefile):
     row = [int(i) for i in m[0]] # row
     col = [int(i) for i in m[1]] # column
     data = [i+1j*j for (i,j) in zip(m[2],m[3])] # data
-    mout = csc_matrix((data,(row,col)),shape=(d,d),dtype=np.complex_) # create the matrix
+    mout = csc_matrix((data,(row,col)),shape=(d,d),dtype=np.complex128) # create the matrix
     if np.max(np.abs(mout.todense() - mout.todense().H))>0.00001: raise
     return mout
   except:
 #    print("empty matrix")
-    mout = csc_matrix((d,d),dtype=np.complex_) # create the matrix
+    mout = csc_matrix((d,d),dtype=np.complex128) # create the matrix
     return mout 
 
 

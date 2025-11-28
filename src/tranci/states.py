@@ -84,7 +84,7 @@ def one2many_basis(m,basis,bdict=None):
       a = m[j,i] # matrix element
       ii = np.zeros(on,dtype=np.int) # indexes
       jj = np.zeros(on,dtype=np.int) # indexes
-      vals = np.zeros(on,dtype=np.complex_) # values
+      vals = np.zeros(on,dtype=np.complex128) # values
       for ib in range(len(basis)): # loop over basis elements
         b = basis[ib] # get the vector
         if b[i]==0: continue # next iteration, destructor empty
@@ -142,7 +142,7 @@ def four2many(m,basis,bdict=None):
           if a==0: continue # skip this one
           ii = np.zeros(on,dtype=np.int) # indexes
           jj = np.zeros(on,dtype=np.int) # indexes
-          vals = np.zeros(on,dtype=np.complex_) # values
+          vals = np.zeros(on,dtype=np.complex128) # values
           for ib in range(len(basis)): # loop over basis elements
             if i==j or k==l: continue # next iteration
             b = basis[ib] # get the vector
