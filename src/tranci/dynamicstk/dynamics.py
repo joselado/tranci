@@ -40,9 +40,9 @@ def dynamical_correlator_inv(h0,A,B,es=np.linspace(-1,10,600),
     else:
         e0 = algebra.lowest_states(h0)[0][0]
     ## default method
-  #  iden = np.identity(h0.shape[0],dtype=np.complex_) # identity
+  #  iden = np.identity(h0.shape[0],dtype=np.complex128) # identity
     from scipy.sparse import identity
-    iden = identity(h0.shape[0],dtype=np.complex_) # matrix to use
+    iden = identity(h0.shape[0],dtype=np.complex128) # matrix to use
     out = []
     for e in es: # loop over energies
         if mode=="full": # using exact inversion
@@ -67,7 +67,7 @@ def solve_cv(h0,wf0,si,sj,w,delta=0.0):
     """Solve the dynamical correlator using conjugate gradient method"""
     ## This function may need some benchmarking
     from scipy.sparse import identity
-    iden = identity(h0.shape[0],dtype=np.complex_) # matrix to use
+    iden = identity(h0.shape[0],dtype=np.complex128) # matrix to use
     b = -delta*sj@wf0 # create the b vector
     A = (h0 - w*iden)@(h0-w*iden) + iden*delta*delta # define A matrix
     x,info = slg.cg(A,b,tol=1e-10) # solve the equation
