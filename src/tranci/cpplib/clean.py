@@ -1,6 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 import os
+import glob
 
-os.system("rm src/main.x")
-os.system("rm src/*.op")
+for name in ["src/main.x","src/main.exe"] + glob.glob("src/*.op"):
+  if os.path.exists(name): os.remove(name) # remove this file

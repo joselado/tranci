@@ -179,7 +179,10 @@ def write_all(lowest,header="",n=None):
 def get_effective_hamiltonian(lowest,n=None):
     """Return latex form of the effective Hamiltonian"""
     if n is None: return ""
-    from .effectivehamiltonian import effective_hamiltonian
+    try: from .effectivehamiltonian import effective_hamiltonian
+    except ImportError: # jax is not installed in this system
+        print("jax not found, skipping the effective Hamiltonian")
+        return "\n\nEffective Hamiltonian omitted, jax is not installed\n\n"
     text = effective_hamiltonian(lowest,n=n) # return the effective Hamiltonian
     return text + "\n\n\n\n"
 

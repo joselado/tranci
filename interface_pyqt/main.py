@@ -1,5 +1,9 @@
 import os
 import sys
+import glob # to find the generated files
+import shutil # to copy files in any operative system
+import tempfile # to create the temporal folder in any operative system
+import subprocess # to call pdflatex and the pdf viewer
 mainpath = os.path.dirname(os.path.realpath(__file__))
 original_path = os.getcwd() # original path where tranci is being executed
 tranciroot = mainpath +"/../" # root to tranci
@@ -30,24 +34,23 @@ get = qtwrap.get  # get the value of a certain variable
 getbox = qtwrap.getbox  # get the value of a certain variable
 window = qtwrap.main() # this is the main interface
 
-## random name for the temporal folder
-temporal_folder = "/tmp/tranci_tmp_"+str(np.random.randint(10000))
+## temporal folder, in the location for temporal files of this system
+temporal_folder = tempfile.mkdtemp(prefix="tranci_tmp_") # portable temporal folder
 
 # go to a temporal folder
 def restart_tranci():
   """Fully restart tranci"""
   tmpfol = temporal_folder
   print("Temporal Tranci folder is",tmpfol)
-  os.system("rm -rf "+tmpfol) # remove temporal folder
-  os.system("mkdir "+tmpfol) # remove temporal folder
   os.chdir(tmpfol) # go to the temporal folder
 
 def save_tranci():
     """Save the generated data in a file"""
-    save_folder = original_path+"/tranci_data" # name of the folder
-    def tcopy(a): 
-        os.system("cp "+temporal_folder+"/"+a+" "+save_folder+" 2>/dev/null")
-    os.system("mkdir "+save_folder+" 2>/dev/null")
+    save_folder = os.path.join(original_path,"tranci_data") # name of the folder
+    def tcopy(a):
+        for f in glob.glob(os.path.join(temporal_folder,a)): # loop over matches
+            shutil.copy(f,save_folder) # copy this file
+    os.makedirs(save_folder,exist_ok=True) # create the folder if not there
     tcopy("*.tex")
     tcopy("*.pdf")
     tcopy("*.OUT")
@@ -59,11 +62,20 @@ restart_tranci() # restart tranci
 
 
 def show_pdf():
-    import platform
-    if platform.system()=="Linux":
-      os.system("xdg-open spectrum_ci.pdf")
-    else: # Mac system
-      os.system("open spectrum_ci.pdf")
+    name = os.path.abspath("spectrum_ci.pdf") # full path to the pdf
+    if not os.path.isfile(name): # no pdf generated yet
+      print("No pdf found, run the calculation first")
+      return
+    if sys.platform=="win32": os.startfile(name) # Windows system
+    elif sys.platform=="darwin": subprocess.Popen(["open",name]) # Mac system
+    else: subprocess.Popen(["xdg-open",name]) # Linux system
+
+
+
+def run_pdflatex():
+  """Compile the latex summary, without printing the output"""
+  subprocess.run(["pdflatex","-interaction=nonstopmode","spectrum_ci.tex"],
+          stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL) # run silently
 
 
 
@@ -117,12 +129,16 @@ def initialize_one_shot():
   if get("nwf_heff")>1: nw = int(get("nwf_heff"))
   else: nw=None
   write.write_all(ls,header=header,n=nw) # write Latex file
-  os.system("pdflatex spectrum_ci.tex > /dev/null 2>&1")
-  os.system("pdflatex spectrum_ci.tex > /dev/null 2>&1") # do it twice
+  if shutil.which("pdflatex") is None: # no latex in this system
+    print("pdflatex not found, only spectrum_ci.tex was written")
+    print("Install a LaTeX distribution (MiKTeX in Windows) for the pdf summary")
+    return
+  run_pdflatex() # compile the latex file
+  run_pdflatex() # do it twice, so that the index is right
   print("#########################")
   print("## PDF Summary created ##")
   print("#########################")
-  os.system("cp spectrum_ci.pdf ../") # copy to the previous folder
+  shutil.copy("spectrum_ci.pdf",os.path.dirname(temporal_folder)) # previous folder
 
 
 

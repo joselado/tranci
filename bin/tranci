@@ -1,8 +1,10 @@
-#!/home/joselado/apps/anaconda3/bin/python
+#!/usr/bin/env python3
 
 import os
+import sys
+import subprocess
+
 path = os.path.dirname(os.path.realpath(__file__)) +"/../" # path to root
 print("Path to tranci is",path)
-maintranci = path+"interface_pyqt/main.py" # main file
-os.system("python "+maintranci)  # run the main script
-
+maintranci = os.path.join(path,"interface_pyqt","main.py") # main file
+sys.exit(subprocess.call([sys.executable,maintranci]))  # run the main script

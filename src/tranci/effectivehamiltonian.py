@@ -2,11 +2,15 @@ import numpy as np
 from . import hamiltonians
 #from numba import jit
 
-import jax
-jax.config.update('jax_platform_name', 'cpu')
-from jax import jit
-from jax import grad
-import jax.numpy as jnp
+try: # jax is only needed to fit the effective Hamiltonian
+    import jax
+    jax.config.update('jax_platform_name', 'cpu')
+    from jax import jit
+    from jax import grad
+    import jax.numpy as jnp
+except ImportError:
+    raise ImportError("Fitting the effective Hamiltonian requires jax, "
+            "install it with 'pip install jax'")
 
 #@jit(nopython=True)
 def errorf(v,diff,ms,simp=1e1,cutoff=1e-6): # function to minimize
