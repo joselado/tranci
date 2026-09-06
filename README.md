@@ -44,29 +44,29 @@ The Hamiltonian is assembled by the user (or by the GUI) as a linear combination
 of many-body operators, all of them already expressed in the
 $\binom{10}{n_e}$-dimensional basis of Slater determinants:
 
-$$
+```math
 \mathcal{H} = U\,\hat V_{ee}
   + \hat V_{\mathrm{CF}}
   + \lambda \sum_i \vec{l}_i\cdot\vec{s}_i
   + \vec{b}\cdot(\vec{L}+2\vec{S})
   + \vec{J}\cdot\vec{S}
-$$
+```
 
 Lower-case $\vec l_i$, $\vec s_i$ act on electron $i$; upper-case
 $\vec L$, $\vec S$ are the total angular momenta. All energies are in **eV**.
 
-- **Coulomb interaction.** $\hat V_{ee}=\sum_{ijkl\sigma\sigma'} V_{ijkl}\,
-  c^\dagger_{i\sigma}c^\dagger_{j\sigma'}c_{k\sigma'}c_{l\sigma}$ is the full
-  Slater-Condon tensor of the *d* shell. The prefactor $U$ is a
+- **Coulomb interaction.**
+  $\hat V_{ee}=\sum_{ijkl\sigma\sigma'} V_{ijkl}\ c^\dagger_{i\sigma}c^\dagger_{j\sigma'}c_{k\sigma'}c_{l\sigma}$
+  is the full Slater-Condon tensor of the *d* shell. The prefactor $U$ is a
   **dimensionless multiplier** of a fixed tensor, not $F^0$ in eV: with
-  multiplier $u$ the Racah parameters are $B = 52.9\,u$ meV and
-  $C = 210\,u$ meV ($C/B \approx 4$). Free 3d ions correspond to
-  $u \approx 1.5$–$2.5$.
+  multiplier $u$ the Racah parameters are $B = 52.9\ u$ meV and
+  $C = 210\ u$ meV ($C/B \approx 4$). Free 3d ions correspond to
+  $1.5 \lesssim u \lesssim 2.5$.
 - **Crystal fields.** Sums of single-particle operators built from powers of
-  $\vec l_i$: uniaxial $D\sum_i (l_z^2)_i$ (splits the shell as $0, D, 4D$),
-  rhombic $E\sum_i (l_x^2-l_y^2)_i$, octahedral
-  $O\sum_i (l_x^4+l_y^4+l_z^4)_i$ (which gives $10Dq = 6\,O$, $t_{2g}$ lowest
-  for $O>0$), trigonal $t\sum_i(\vec l_i\cdot\hat n)^2$ with
+  $\vec l_i$: uniaxial $D\sum_i l_{z,i}^2$ (splits the shell as $0, D, 4D$),
+  rhombic $E\sum_i (l_{x,i}^2-l_{y,i}^2)$, octahedral
+  $O\sum_i (l_{x,i}^4+l_{y,i}^4+l_{z,i}^4)$ (which gives $10Dq = 6\ O$,
+  $t_{2g}$ lowest for $O>0$), trigonal $t\sum_i(\vec l_i\cdot\hat n)^2$ with
   $\hat n = (1,1,1)/\sqrt3$, plus $z^4$ and $(l_xl_y)^2+(l_yl_x)^2$ terms.
   Any other one-body field can be supplied as a $10\times10$ matrix.
 - **Spin-orbit coupling.** $\lambda$ is the one-electron constant and is
@@ -87,9 +87,9 @@ $C \approx 420$ meV).
   <img src="figures/d2_multiplets_vs_10Dq.png" width="520" alt="d2 multiplets versus 10Dq">
 </p>
 
-**High-spin to low-spin crossover.** Ground-state $t_{2g}$/$e_g$ occupations
-and total spin of a $d^6$ ion (e.g. Fe$^{2+}$) versus octahedral splitting.
-With $u=2$ the $^5T_{2g}\to{}^1A_{1g}$ crossover occurs at
+**High-spin to low-spin crossover.** Ground-state $t_{2g}/e_g$ occupations
+and total spin of a $d^6$ ion (e.g. $\mathrm{Fe}^{2+}$) versus octahedral
+splitting. With $u=2$ the $^5T_{2g}\to{}^1A_{1g}$ crossover occurs at
 $10Dq \approx 1.8$ eV.
 
 <p align="center">
@@ -152,7 +152,7 @@ print(M.get_gs_projected_eigenvalues(Atom.Operator["dxy"]))  # orbital occupatio
 | `jx jy jz j2` | total angular momentum $J_\alpha$, $J^2$ |
 | `Coulomb` (`vc`) | Slater-Condon interaction $\hat V_{ee}$ |
 | `ls` | one-body spin-orbit coupling $\sum_i \vec l_i\cdot\vec s_i$ |
-| `x2 y2 z2 x4 y4 z4 x2y2` | crystal-field generators $\sum_i (l_\alpha^2)_i$, $\sum_i (l_\alpha^4)_i$, ... |
+| `x2 y2 z2 x4 y4 z4 x2y2` | crystal-field generators $\sum_i l_{\alpha,i}^2$, $\sum_i l_{\alpha,i}^4$, ... |
 | `dz2 dxy dxz dyz dx2y2` | occupation of each cubic-harmonic orbital |
 
 `Atom.SP_Operator` holds the same operators as $10\times10$ single-particle
