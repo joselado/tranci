@@ -193,7 +193,7 @@ def initialize_sweep():
     elif stype == "x^2-y^2": p.E = x
     elif stype == "soc": p.soc = x
     elif stype == "z^4": p.z4 = x
-    elif stype == "x^2y^2": p.x4y2 = x
+    elif stype == "x^2y^2": p.x2y2 = x
     elif stype == "x^4+y^4+z^4": p.O = x
     elif stype == "(x+y+z)^2": p.trigonal = x
     elif stype == "B": p.b = get_b(x,p.theta_b,p.phi_b)

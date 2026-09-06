@@ -346,6 +346,11 @@
                </item>
                <item>
                 <property name="text">
+                 <string>x^2y^2</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
                  <string>x^4+y^4+z^4</string>
                 </property>
                </item>
@@ -532,14 +537,14 @@
              <item row="1" column="0">
               <widget class="QLabel" name="label">
                <property name="text">
-                <string>U [eV]</string>
+                <string>U [multiplier]</string>
                </property>
               </widget>
              </item>
              <item row="1" column="1">
               <widget class="QLineEdit" name="U">
                <property name="toolTip">
-                <string>Electron-electron interaction</string>
+                <string>Dimensionless multiplier of the fixed Coulomb tensor (Racah B = 52.9*U meV, C = 210*U meV). It is NOT an energy in eV.</string>
                </property>
                <property name="text">
                 <string>4.0</string>
@@ -650,7 +655,7 @@
              <item row="3" column="0">
               <widget class="QLabel" name="label_6">
                <property name="text">
-                <string>Trigonal (x+y+z)^2</string>
+                <string>Trigonal ((x+y+z)/sqrt(3))^2</string>
                </property>
               </widget>
              </item>
@@ -687,7 +692,7 @@
              <item row="5" column="0">
               <widget class="QLabel" name="label_11">
                <property name="text">
-                <string>Shear' x^2y^2</string>
+                <string>Shear' (xy)^2+(yx)^2</string>
                </property>
               </widget>
              </item>

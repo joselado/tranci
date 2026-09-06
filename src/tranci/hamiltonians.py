@@ -34,12 +34,12 @@ def latex_DE(atom,p):
   if D != 0.0: form += str(D) + "l_z^2 + "
   if E != 0.0: form += str(E) + "(l_x^2 - l_y^2)  +"
   if O != 0.0: form += str(O) + "(l_x^4 + l_y^4 + l_z^4)  +"
-  if tri != 0.0: form += str(tri) + "(l_x + l_y + l_z)^2  +"
+  if tri != 0.0: form += str(tri) + "\\left ( \\frac{l_x + l_y + l_z}{\\sqrt 3} \\right )^2  +"
   if z4 != 0.0: form += str(z4) + "l_z^4  +"
-  if x2y2 != 0.0: form += str(x2y2) + "(l_x^2l_y^2 + l_y^2l_x^2)  +"
+  if x2y2 != 0.0: form += str(x2y2) + "((l_xl_y)^2 + (l_yl_x)^2)  +"
   if soc != 0.0: form += str(soc) + "\\vec l \\cdot \\vec s  +"
 #  if U != 0.0: form += str(U) + "V_{ijkl}c^\\dagger_i c^\\dagger_j c_k c_l  +"
-  if U != 0.0: form += str(U) + "V_{e-e} +"
+  if U != 0.0: form += str(U) + "V_{e-e} +"  # U is a dimensionless multiplier
   if b[0] != 0.0: form += str(b[0]) + "(l_x+2s_x)  +"
   if b[1] != 0.0: form += str(b[1]) + "(l_y+2s_y)  +"
   if b[2] != 0.0: form += str(b[2]) + "(l_z+2s_z)  +"
@@ -166,11 +166,21 @@ class Lowest_States():
     def get_representation(self,A,n=6):
         """Representation of a certain operator in a basis"""
         return get_representation(self.evecs[0:n],A)
-    def get_gtensor(self):
-        """Compute the gtensor"""
-        if self.atom is None: raise
+    def get_gtensor(self,**kwargs):
+        """Compute and return the g-tensor of a Kramers doublet ground state"""
+        if self.atom is None:
+            raise ValueError("get_gtensor needs the Atom object, build the "
+                    "Lowest_States with atom=... or via Atom.get_manifolds")
         from .gtensor import get_gtensor
-        self.gtensor = get_gtensor(self.atom,self.h)
+        self.gtensor = get_gtensor(self.atom,self.h,**kwargs)
+        return self.gtensor
+    def get_principal_g(self,**kwargs):
+        """Return the principal g values and the magnetic axes"""
+        if self.atom is None:
+            raise ValueError("get_principal_g needs the Atom object, build the "
+                    "Lowest_States with atom=... or via Atom.get_manifolds")
+        from .gtensor import get_principal_g
+        return get_principal_g(self.atom,self.h,**kwargs)
     def get_gs_degeneracy(self,tol=None,T=None):
       """Gets the degeneracy of the ground state manifold
 
