@@ -20,9 +20,9 @@ class BaseMB():
     for (i,orb) in zip(range(len(self.occ)),self.occ):
       if orb:
 #        l += "c^\dagger_{"+self.orb[i]+"}"
-        if not first: l+=" , "
-        else:  first = False          
-        l += self.orb[i]
+        if not first: l+=",\\,"
+        else:  first = False
+        l += "{"+self.orb[i]+"}"
 #    l += "|\Omega\\rangle"
     l += "\\rangle"
     return l # return the latex line

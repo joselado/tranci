@@ -4,26 +4,26 @@ from .write import matrix2latex
 
 def effective_algebra(dd):
     """Add the effective algebra of the operators"""
-    text = ""
+    text = "\\subsection{Projected operators}\n\n"
+    text += "Spin, orbital and total angular momentum operators written in "
+    text += "the low energy manifold.\n\n"
     for key in dd: # write all the operators
-        text += matrix2latex(dd[key],name=key) # get this matrix
-    text += "\\subsection{Commutations}\n\n" # empty string
-    text += get_commutations(dd)
+        text += matrix2latex(dd[key],name=key2latex(key)) # get this matrix
+    comm = get_commutations(dd)
+    if comm=="": return text
+    text += "\\subsection{Commutation relations}\n\n"
+    text += "Commutators and squares of the projected operators that are "
+    text += "proportional to another projected operator.\n\n"
+    text += "\\begin{align*}\n"+comm+"\\end{align*}\n\n"
     return text
 
 def return_commutation(keyi,keyj,m,dd):
     out = ""
     for keyk in dd: # loop
         if is_proportional(m,dd[keyk]):
-            out += "\\begin{equation}\n"
-            out += key2latex(keyi) +"  "
-            out += key2latex(keyj) +"  -"
-            out += key2latex(keyj) +"  "
-            out += key2latex(keyi) +"  ="
             c = ratio(m,dd[keyk]) # ratio
-            out += zform(c)
-            out += key2latex(keyk) +"  \n"
-            out += "\\end{equation}\n"
+            out += "  \\big[ "+key2latex(keyi)+", "+key2latex(keyj)+" \\big] &= "
+            out += zform(c)+"\\,"+key2latex(keyk)+" \\\\\n"
     return out
 
 
@@ -32,27 +32,25 @@ def return_square(keyi,m,dd):
     out = ""
     for keyk in dd: # loop
         if is_proportional(m,dd[keyk]):
-            out += "\\begin{equation}\n"
-            out += key2latex(keyi) +"  "
-            out += key2latex(keyi) +"  ="
             c = ratio(m,dd[keyk]) # ratio
-            out += zform(c)
-            out += key2latex(keyk) +"  \n"
-            out += "\\end{equation}\n"
+            out += "  "+key2latex(keyi)+"^2 &= "
+            out += zform(c)+"\\,"+key2latex(keyk)+" \\\\\n"
     return out
 
 
 
 def get_commutations(dd):
-    """Check out if there is any interesting commutation relation"""
+    """Return the rows of an align* block with every commutator or square
+    that is proportional to one of the operators, empty if there is none"""
     out = "" # empty string
-    for keyi in dd: # loop
+    keys = list(dd)
+    for (ii,keyi) in enumerate(keys): # loop
       mi = dd[keyi] # this matrix
-      for keyj in dd: # loop
+      for keyj in keys[ii+1:]: # [A,B] = -[B,A], write each pair once
           mj = dd[keyj] # this other matrix
           m = mi@mj - mj@mi # commutator
           out += return_commutation(keyi,keyj,m,dd)
-      out += return_square(keyi,mi@mi,dd)
+    for keyi in keys: out += return_square(keyi,dd[keyi]@dd[keyi],dd)
     return out
 
 
@@ -76,7 +74,6 @@ def is_proportional(a,b):
     if np.abs(out)<1e-6: return False
     #/(np.sqrt(braket(a,a))*np.sqrt(braket(b,b)))
     out = out/(aa*bb) # normalize
-    print(np.abs(out))
     if 0.9<np.abs(out)<1.1: return True
     return False
 
@@ -99,9 +96,7 @@ def braket(a,b):
 
 def key2latex(key):
     if type(key)==str: return key
-    out = ""
-    for k in key: out += k + "  "
-    return out
+    return " ".join(key)
 
 
 

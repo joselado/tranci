@@ -208,8 +208,13 @@ def effective_hamiltonian(lowest,n=2,nt=2):
     ls = get_ls_operators(atom) # LS operators
     sj = get_sj_operators(atom) # SJ operators
     lj = get_lj_operators(atom) # LJ operators
-    text = "\\section{Effective Hamiltonian}\n\n\n" #
-    text += "This is the Hamiltonian written in the low energy manifold with "+str(n)+" states\n"
+    text = "\\section{Effective Hamiltonian}\n\n" #
+    text += "The Hamiltonian projected onto the lowest "+str(n)+" states, "
+    text += "with its trace removed, fitted with products of the projected "
+    text += "spin, orbital and total angular momentum operators "
+    text += "$\\bar S_\\alpha$, $\\bar L_\\alpha$ and $\\bar J_\\alpha$. "
+    text += "The overall energy scale is factored out and the terms are "
+    text += "sorted by decreasing weight.\n\n"
     ops = [ls,sj,lj] # operators
     names = ["LS","SJ","LJ"] # names
     for (dd,name) in zip(ops,names): # loop over pairs of effective operators
@@ -224,10 +229,10 @@ def effective_hamiltonian(lowest,n=2,nt=2):
       try: del coef[("Id")]
       except: pass
       if len(coef)==0: continue # nothing survived for this set; try the next
-      text += "\\subsection{Low energy Hamiltonian with "+name+" operators}"
-      text += "\\begin{equation}\n"
+      text += "\\subsection{Fit with "+name[0]+" and "+name[1]+" operators}\n\n"
+      text += "\\begin{equation*}\n"
       text +=  dict2latex(coef) # return the latex format
-      text += "\\end{equation}\n\n"
+      text += "\\end{equation*}\n\n"
       from .write import matrix2latex
       ops = dict() # dictionary with effective operators
     dd = get_lsj_operators(atom) # get the LSJ operators
@@ -252,38 +257,47 @@ def scale2latex(c,tol=1e-12):
 
     zform is meant for dimensionless ratios: it snaps anything below its own
     absolute tolerance of 1e-3 to "0", which silently erased meV-scale spin
-    Hamiltonian parameters. Print the physical scale as a real number instead.
+    Hamiltonian parameters. Print the physical scale as a real number with a
+    unit instead, in meV (or micro-eV when it is smaller than 0.01 meV).
     """
     re,im = float(np.real(c)),float(np.imag(c))
-    if np.abs(im)>tol: return "({:.4e}{:+.4e}i)".format(re,im)
-    return "{:.4e}".format(re)
+    scale,unit = 1e3,"\\,\\mathrm{meV}"
+    if max(abs(re),abs(im))*scale<1e-2: scale,unit = 1e6,"\\,\\mu\\mathrm{eV}"
+    if np.abs(im)>tol:
+        return "({:.4g}{:+.4g}i)".format(re*scale,im*scale)+unit
+    return "{:.4g}".format(re*scale)+unit
 
 
-def dict2latex(d,tol=1e-4):
-    """Transform the dictionary into a latex form"""
+def dict2latex(d,tol=1e-3,per_line=3):
+    """Transform the dictionary into a latex form: the largest coefficient
+    is factored out and the remaining terms, sorted by decreasing weight,
+    are written per_line to a line with a proper sign each"""
     cs = [d[key] for key in d] # coefficients
-    cmax = [iy for (ix,iy) in sorted(zip(np.abs(cs),cs))][-1] 
+    cmax = [iy for (ix,iy) in sorted(zip(np.abs(cs),cs))][-1]
     keys = [key for key in d] # get the keys
     keys = [iy for (ix,iy) in sorted(zip(-np.abs(cs),keys))] # sort the keys
-    terms = [] # the terms that survive the tolerance
+    terms = [] # (sign, magnitude string, operator) of the surviving terms
     for key in keys: # loop
         c = np.round(d[key]/cmax,4) # round the number
-        if np.abs(c)<tol: continue
-        if .99<np.real(c)<1.01 and np.abs(np.imag(c))<tol: s = "  " # unit coefficient
-        else: s = zform(c) + "  " # normalize
-        terms.append(s + key2latex(key)) # create the name
+        if np.abs(c)<tol: continue # zform would print this as zero
+        if np.abs(np.imag(c))<tol: # real coefficient, carry the sign outside
+            sign = "-" if np.real(c)<0 else "+"
+            mag = np.abs(np.real(c))
+            if np.abs(mag-1)<tol: s = "" # unit coefficient
+            else: s = zform(mag)+"\\,"
+        else: sign,s = "+","("+zform(c)+")\\,"
+        terms.append((sign,s,key2latex(key).strip()))
     out = "\\begin{aligned}\n"
-    # \big instead of \left/\right: a row break (\\) inside a \left...\right
+    # \Big instead of \left/\right: a row break (\\) inside a \left...\right
     # group is a hard LaTeX error as soon as three terms survive
-    out += "H = \n"+scale2latex(cmax)+" \\big [ " # output string
-    for (ik,t) in enumerate(terms): # loop over surviving terms
-        out += t
-        if ik<len(terms)-1: # separator only between terms
-            out += " + \n" # new line
-            if (ik+1)%3==0: out += "\\\\ \n" # new line
-    out += " \\big ] \n" # last line
-    out += "\\end{aligned}\n"
+    out += "H = "+scale2latex(cmax)+" \\Big[ &" # output string
+    for (ik,(sign,s,op)) in enumerate(terms): # loop over surviving terms
+        if ik==0: out += ("-" if sign=="-" else "")+s+op
+        else: out += " "+sign+" "+s+op
+        if (ik+1)%per_line==0 and ik<len(terms)-1: out += " \\\\\n &"
+    out += " \\Big]\n\\end{aligned}\n"
     return out
+
 
 
 from .numberformat import zform

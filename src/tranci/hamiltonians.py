@@ -13,49 +13,62 @@ scale_coulomb = 1.0 # constant to reproduce alejandro's results
 
 
 def latex_DE(atom,p):
-  """ Get the hamiltonian in latex form"""
-  n = p.n
-  D = p.D
-  E = p.E
-  U = p.U
-  soc = p.soc
-  tri = p.trigonal
-  O = p.O
-  z4 = p.z4
-  j = p.j
-  b = p.b
-  x2y2 = p.x2y2
-#  form = "\\textit{Tranci version 0.3}\n\n\n"
-  form = "\\nonstopmode\n\n\n" # ignore errors
-  form += "\\section{Hamiltonian}\n" # name of the section
-  form += "Hamiltonian of the atom\n"
-  form += "\\begin{equation}\n" # begin equation
-  form += "\\mathcal{H} = \\sum" # H
-  if D != 0.0: form += str(D) + "l_z^2 + "
-  if E != 0.0: form += str(E) + "(l_x^2 - l_y^2)  +"
-  if O != 0.0: form += str(O) + "(l_x^4 + l_y^4 + l_z^4)  +"
-  if tri != 0.0: form += str(tri) + "\\left ( \\frac{l_x + l_y + l_z}{\\sqrt 3} \\right )^2  +"
-  if z4 != 0.0: form += str(z4) + "l_z^4  +"
-  if x2y2 != 0.0: form += str(x2y2) + "((l_xl_y)^2 + (l_yl_x)^2)  +"
-  if soc != 0.0: form += str(soc) + "\\vec l \\cdot \\vec s  +"
-#  if U != 0.0: form += str(U) + "V_{ijkl}c^\\dagger_i c^\\dagger_j c_k c_l  +"
-  if U != 0.0: form += str(U) + "V_{e-e} +"  # U is a dimensionless multiplier
-  if b[0] != 0.0: form += str(b[0]) + "(l_x+2s_x)  +"
-  if b[1] != 0.0: form += str(b[1]) + "(l_y+2s_y)  +"
-  if b[2] != 0.0: form += str(b[2]) + "(l_z+2s_z)  +"
-  # exchange
-  if j[0] != 0.0: form += str(j[0]) + "s_x  +"
-  if j[1] != 0.0: form += str(j[1]) + "s_y  +"
-  if j[2] != 0.0: form += str(j[2]) + "s_z  +"
-  form = form.rstrip() # drop trailing whitespace
-  if form.endswith("+"): form = form[:-1] # remove a dangling separator only
-  form += "\\end{equation}\n" # end equation
-  if n>-1: form += "Number of electrons in the d shell = "+str(n)+"\n\n"
-  form += "Lower case $l,s$ denote single particle operators\n\n"
-  form += "Upper case $L,S,J$ denote multi particle operators\n\n"
+  """Return the Hamiltonian section of the LaTeX summary: the Hamiltonian
+  as an equation plus a table with every parameter of the run"""
+  def num(x): return "{:g}".format(float(x))
+  def term(c,op): # one term with its prefactor
+    if float(c)<0: return "- "+num(-c)+"\\,"+op
+    return "+ "+num(c)+"\\,"+op
+  def join(terms):
+    out = " ".join(terms).strip()
+    if out.startswith("+ "): out = out[2:]
+    return out
+  n,D,E,U,soc,tri,O,z4,x2y2 = p.n,p.D,p.E,p.U,p.soc,p.trigonal,p.O,p.z4,p.x2y2
+  j,b = p.j,p.b
+  # single-particle terms, summed over the electrons
+  sp = []
+  if D != 0.0: sp.append(term(D,"l_z^2"))
+  if E != 0.0: sp.append(term(E,"(l_x^2 - l_y^2)"))
+  if O != 0.0: sp.append(term(O,"(l_x^4 + l_y^4 + l_z^4)"))
+  if tri != 0.0: sp.append(term(tri,"\\Big(\\frac{l_x + l_y + l_z}{\\sqrt 3}\\Big)^2"))
+  if z4 != 0.0: sp.append(term(z4,"l_z^4"))
+  if x2y2 != 0.0: sp.append(term(x2y2,"\\big((l_x l_y)^2 + (l_y l_x)^2\\big)"))
+  if soc != 0.0: sp.append(term(soc,"\\vec l \\cdot \\vec s"))
+  # many-body terms
+  mb = []
+  if U != 0.0: mb.append(term(U,"V_{e\\text{-}e}"))
+  for (bi,a) in zip(b,"xyz"):
+    if bi != 0.0: mb.append(term(bi,"(L_"+a+" + 2S_"+a+")"))
+  for (ji,a) in zip(j,"xyz"):
+    if ji != 0.0: mb.append(term(ji,"S_"+a))
+  form = "\\section{Hamiltonian}\n\n"
+  form += "Hamiltonian of the $d$ shell, in eV. Lower case $l,s$ are "
+  form += "single-particle operators acting on electron $i$, upper case "
+  form += "$L,S,J$ are the total many-body operators.\n"
+  form += "\\begin{equation*}\n\\mathcal{H} = "
+  if len(sp)>0: form += "\\sum_i \\Big[ "+join(sp)+" \\Big] "
+  if len(mb)>0:
+    if len(sp)>0: form += " ".join(mb)+"\n"
+    else: form += join(mb)+"\n"
+  if len(sp)==0 and len(mb)==0: form += "0\n"
+  form += "\\end{equation*}\n\n"
+  # parameter table
+  rows = [("Electrons in the $d$ shell","$n_e$",str(n),"")]
+  rows += [("Axial crystal field","$D$",num(D),"eV"),
+           ("Rhombic crystal field","$E$",num(E),"eV"),
+           ("Cubic crystal field","$O$",num(O),"eV"),
+           ("Trigonal crystal field","$\\Delta_{\\mathrm{tri}}$",num(tri),"eV"),
+           ("Quartic axial field","$z_4$",num(z4),"eV"),
+           ("$x^2y^2$ field","$x_2y_2$",num(x2y2),"eV"),
+           ("Spin--orbit coupling","$\\lambda$",num(soc),"eV"),
+           ("Coulomb interaction","$U$",num(U),"multiplier"),
+           ("Magnetic field","$\\vec B$","("+", ".join([num(x) for x in b])+")","eV"),
+           ("Exchange field","$\\vec J$","("+", ".join([num(x) for x in j])+")","eV")]
+  form += "\\begin{center}\n\\begin{tabular}{llrl}\n\\toprule\n"
+  form += "Parameter & Symbol & Value & Units \\\\\n\\midrule\n"
+  for r in rows: form += "  "+" & ".join(r)+" \\\\\n"
+  form += "\\bottomrule\n\\end{tabular}\n\\end{center}\n\n"
   return form
-
-
 
 
 def build_hamiltonian(atom,p,gn=1./1836.):

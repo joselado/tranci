@@ -112,7 +112,9 @@ class CIatom():
 def format_component(x):
   """Returns a string with the number correctly formatted"""
   if np.abs((np.abs(x)-1.))<tol: return ""
-  else: return zform(x)
+  # eigenvector components are known to machine precision, so a closed form
+  # is only claimed when it is exact and not a two-decimal coincidence
+  else: return zform(x,guess_tol=1e-6)
 
 
 

@@ -1046,12 +1046,17 @@ along with them.  \op{Help $\to$ Manual} (F1) opens this document.
 \item[Initialize and run] performs one calculation and writes
       \op{spectrum\_ci.tex}, compiling it twice with \op{pdflatex} (so that the
       table of contents is correct) into \op{spectrum\_ci.pdf}.  The summary
-      contains the Hamiltonian, the table of manifolds with degeneracies and
-      excitation energies, a table of energies with
-      $\langle L_\alpha\rangle$ and $\langle S_\alpha\rangle$ for each state,
-      the projection of all standard operators on the ground-state manifold, the
-      explicit wavefunctions of every manifold, and (optionally) the effective
-      Hamiltonian.
+      contains the Hamiltonian together with a table of every parameter of
+      the run, the table of manifolds with degeneracies and excitation
+      energies, a table of energies with $\langle L_\alpha\rangle$ and
+      $\langle S_\alpha\rangle$ for each state, the projection of all
+      standard operators on the ground-state manifold (a table of expectation
+      values when the ground state is non-degenerate, matrices otherwise), the
+      explicit wavefunctions of the ground state and the first ten excited
+      manifolds, and (optionally) the effective Hamiltonian.  The remaining
+      manifolds are listed in an appendix; from Python the number of
+      manifolds in the main text is the \op{nbody} argument of
+      \op{write.write\_all}.
 \item[Show pdf] opens that summary with the system viewer.
 \item[Plot spectrum / Plot excitations] sweep the parameter selected in
       \op{Parameter to sweep} over \op{[Initial, Final]} in \op{Steps} points
