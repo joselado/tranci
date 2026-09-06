@@ -5,17 +5,17 @@ import numpy as np
 def angular(x,y,z):
   xy = x*y - y*x
   xy = xy - 1j*z
-  if np.abs(np.max(xy.todense()))>0.001: 
+  if np.max(np.abs(xy.todense()))>0.001: # magnitude, not max of complex values
     print(x*y - y*x)
-    raise
+    raise ValueError("Angular momentum commutation relation violated")
 
 
 
 def zero(x,y):
   xy = x*y - y*x
-  if np.abs(np.max(xy.todense()))>0.01: 
+  if np.max(np.abs(xy.todense()))>0.01: # magnitude, not max of complex values
     print(x*y - y*x)
-    raise
+    raise ValueError("Operators expected to commute do not")
 
 
 

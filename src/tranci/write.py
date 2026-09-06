@@ -75,8 +75,8 @@ def get_energies_table(lowest):
      else: name = "Excited \#"+str(istate) # name for excited
      table += name + "  &  "  # line with name 
      table += str(d[0]) +"   &  " # line with degeneracy
-     table += fform(ex[istate]) +"  &  " # line with distance to ground
-     table += fform(d[1]) # line with energy 
+     table += fform(ex[istate],n=6) +"  &  " # line with distance to ground
+     table += fform(d[1],n=6) # line with energy 
      table += "  \\"+"\\"+"\n"  # line with name degeneracy and energy
      istate += 1
      if istate%36 ==0: table += end + "\n\n" + beginning # new page
@@ -167,6 +167,10 @@ def write_manifolds(at,lowest):
 def write_all(lowest,header="",n=None):
   """ Writes all the stuff in a file"""
   at = lowest.atom 
+  # these populate lowest.gs_manifold / lowest.manifolds, which the helpers
+  # below read directly; without them a library caller got an AttributeError
+  if not hasattr(lowest,"gs_manifold"): lowest.get_gs_manifold()
+  if not hasattr(lowest,"manifolds"): lowest.get_manifolds()
   text = header
   text += get_energies_table(lowest)
   text += get_table_states(lowest)

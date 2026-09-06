@@ -121,19 +121,23 @@ def get_atom(ne=1):
     """Get an atom, by the number of electrons"""
     import os  
     path = os.path.dirname(os.path.realpath(__file__))+"/cilib/"+str(ne)+"/" #
-    if not 0<ne<11: raise # too few/many
+    if not 0<ne<10: # the shipped operator library only covers 1..9
+        raise ValueError("Number of electrons must be between 1 and 9, got %s"%ne)
+    if not os.path.isdir(path):
+        raise IOError("Missing operator library for ne=%s (%s)"%(ne,path))
     at = CIatom() # create the CI object
     at.ne = ne # store number of electrons
     at.read(path=path) # read all the matrices
     at.get_basis() # read the basis from file
-    terms = get_op_dict(at)
+    at0 = get_atom(ne=1) if ne>1 else None # read the 1e library at most once
+    terms = get_op_dict(at,at0=at0)
     at.terms = terms
     at.Operator = terms
     # dictionary for single particle opeprators
     if ne>1: # for many-body, store the 1 electron matrices
-        at.SP_Operator = get_atom(ne=1).Operator
-    else: # for 1e, store a dummy copy
-        at.SP_Operator = at.Operator
+        at.SP_Operator = at0.Operator
+    else: # for 1e, store a copy so mutating one dict cannot corrupt the other
+        at.SP_Operator = dict(at.Operator)
     return at # return atom
 
 
@@ -142,16 +146,30 @@ def rotate_wavefunction_axis(atom,v):
     """Rotate spatial and spin axis of a wavefunction"""
     zaxis = atom.wavefunction_z_axis # new z axis for wavefunctions
     zaxis = algebra.normalize(zaxis) # normalize the new zaxis
-    theta = np.arccos(zaxis[2]) # theta angle
+    theta = np.arccos(np.clip(zaxis[2],-1.0,1.0)) # theta angle
     if theta==0.0: return v
-    rhoaxis = algebra.normalize([zaxis[0],zaxis[1],0.]) # rho axis
-    phi = np.arctan2(rhoaxis[1],rhoaxis[0]) # theta angle
-#    print(theta,phi)
-    rot = lg.expm(1j*atom.jz*phi)@lg.expm(1j*atom.jy*theta)
+    if np.hypot(zaxis[0],zaxis[1])<1e-12: phi = 0.0 # z axis, azimuth undefined
+    else: phi = np.arctan2(zaxis[1],zaxis[0]) # azimuthal angle
+    # scipy.linalg.expm needs dense input; jz/jy are sparse
+    jz = todense_array(atom.jz)
+    jy = todense_array(atom.jy)
+    # We want the wavefunction expressed IN the frame whose z axis is the
+    # requested one, i.e. the passive transform R^dagger, where
+    # R = exp(-i*phi*Jz) exp(-i*theta*Jy) is the active rotation z -> n.
+    # Verified: this collapses a J.n eigenstate onto a single basis ket.
+    # (The bug fixed here was expm applied to sparse matrices; the sign of the
+    # exponents was also wrong.)
+    rot = lg.expm(1j*jy*theta)@lg.expm(1j*jz*phi)
     return rot@v # rotate
 
 
-def get_op_dict(self):
+def todense_array(m):
+    """Return a dense numpy array for a sparse or dense matrix"""
+    from scipy.sparse import issparse
+    return np.asarray(m.todense()) if issparse(m) else np.asarray(m)
+
+
+def get_op_dict(self,at0=None):
     """Return the dictionary with all the operators"""
     terms = dict()
     # spin
@@ -199,7 +217,7 @@ def get_op_dict(self):
     ############################################################
     # this should be double checked
     if self.ne!=1: # more than 1 electron
-        At0 = get_atom(ne=1) # dummy atom to create the projectors
+        At0 = at0 if at0 is not None else get_atom(ne=1) # 1e atom for projectors
     else:
         At0 = self.copy()
     P_0 = At0.u0 + At0.d0

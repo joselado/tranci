@@ -7,7 +7,7 @@ def write_low_energy(ls,at,n=10,ghz=False):
   waves = ls.evecs[0:n] # lowest states
   e0 = ls.evals[0:n] # lowest states
   # now write in a file
-  h = 4.135*10**(-6) # in GHz
+  h = 4.135667696e-6 # Planck constant in eV/GHz
   fo = open("SPECTRUM.OUT","w")
   fo.write("# Energy [GHz], Energy [meV], Lx, Ly, Lz, Sx, Sy, Sz\n")
   for i in range(len(waves)): # loop over states
@@ -28,7 +28,7 @@ def write_population(ls,at,n=10,ghz=False):
   waves = ls.evecs[0:n] # lowest states
   e0 = ls.evals[0:n] # lowest states
   # now write in a file
-  h = 4.135*10**(-6) # in GHz
+  h = 4.135667696e-6 # Planck constant in eV/GHz
   fo = open("POPULATION.OUT","w")
   fo.write("# Energy [GHz], Energy [meV], ")
   fo.write("up-2, up-1, up0, up+1, up+2, ")
@@ -43,5 +43,5 @@ def write_population(ls,at,n=10,ghz=False):
       fo.write(fform(a)+"    ")
     fo.write("\n")
   fo.close()
-  return np.genfromtxt("SPECTRUM.OUT") # return everything
+  return np.genfromtxt("POPULATION.OUT") # return everything
 

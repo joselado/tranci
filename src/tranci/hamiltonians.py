@@ -36,7 +36,7 @@ def latex_DE(atom,p):
   if O != 0.0: form += str(O) + "(l_x^4 + l_y^4 + l_z^4)  +"
   if tri != 0.0: form += str(tri) + "(l_x + l_y + l_z)^2  +"
   if z4 != 0.0: form += str(z4) + "l_z^4  +"
-  if x2y2 != 0.0: form += str(x2y2) + "l_x^2l_y^2 + l_y^2l_x^2"
+  if x2y2 != 0.0: form += str(x2y2) + "(l_x^2l_y^2 + l_y^2l_x^2)  +"
   if soc != 0.0: form += str(soc) + "\\vec l \\cdot \\vec s  +"
 #  if U != 0.0: form += str(U) + "V_{ijkl}c^\\dagger_i c^\\dagger_j c_k c_l  +"
   if U != 0.0: form += str(U) + "V_{e-e} +"
@@ -47,7 +47,8 @@ def latex_DE(atom,p):
   if j[0] != 0.0: form += str(j[0]) + "s_x  +"
   if j[1] != 0.0: form += str(j[1]) + "s_y  +"
   if j[2] != 0.0: form += str(j[2]) + "s_z  +"
-  form = form[:-1] # remove last character
+  form = form.rstrip() # drop trailing whitespace
+  if form.endswith("+"): form = form[:-1] # remove a dangling separator only
   form += "\\end{equation}\n" # end equation
   if n>-1: form += "Number of electrons in the d shell = "+str(n)+"\n\n"
   form += "Lower case $l,s$ denote single particle operators\n\n"
@@ -61,38 +62,32 @@ def build_hamiltonian(atom,p,gn=1./1836.):
   """Creates a simple Hamiltonian with D, E and soc parameters"""
   # get all the parameters
   # check if it is a dictionary
-  if isinstance(p,dict): # if it is a dictionary
-    D = p["D"]
-    E = p["E"]
-    U = p["U"]
-    soc = p["soc"]
-    U = p["U"]
-    j = p["j"]
-    x2y2 = p["x2y2"]
-    trigonal = p["trigonal"]
-    try: cf = p["cf"]
-    except: pass
-    try: Uc = p["Uc"]
-    except: 
-      print("Using U as Uc")
-      Uc = U
-  else: # if it is a class
-    D = p.D
-    E = p.E
-    U = p.U
-    soc = p.soc
-    O = p.O
-    z4 = p.z4
-    j = p.j
-    b = p.b
-    x2y2 = p.x2y2
-    trigonal = p.trigonal
-    try: cf = p.cf
-    except: print("Not found total crystal field operator")
-    try: Uc = p.Uc
-    except: 
-      print("Using U as Uc")
-      Uc = U
+  # read the parameters the same way whether p is a dict or an object, so the
+  # dictionary form does not silently miss O, z4 or b
+  _missing = object()
+  if isinstance(p,dict): get = lambda k: p.get(k,_missing)
+  else: get = lambda k: getattr(p,k,_missing)
+  def req(k): # a parameter the Hamiltonian cannot be built without
+    v = get(k)
+    if v is _missing: raise KeyError("build_hamiltonian: missing parameter '%s'"%k)
+    return v
+  def opt(k,default): # an optional parameter
+    v = get(k)
+    return default if v is _missing else v
+  D = req("D")
+  E = req("E")
+  U = req("U")
+  soc = req("soc")
+  j = req("j")
+  x2y2 = req("x2y2")
+  trigonal = req("trigonal")
+  O = opt("O",0.0)
+  z4 = opt("z4",0.0)
+  b = opt("b",[0.0,0.0,0.0])
+  Uc = get("Uc")
+  if Uc is _missing:
+    print("Using U as Uc")
+    Uc = U
   # build the hamiltonian
   h = soc*atom.ls + D*atom.z2 + E*(atom.x2-atom.y2)
   if Uc != 0.0:
@@ -160,9 +155,13 @@ class Lowest_States():
         self.h = h # hamiltonian
         self.atom = atom # Atom object
         evals,evecs = eigenstates(h)
+        self.e0 = float(np.min(evals)) # ground state energy before the shift
         evals = evals - np.min(evals)
-        self.evals = np.array([np.round(e,ntol) for e in evals]) # round values
-        self.evals_full = np.array([np.round(e,ntol_ene) for e in evals]) # round values
+        # Keep the exact eigenvalues. ntol/ntol_ene are degeneracy-grouping
+        # tolerances, not a display precision: rounding here used to quantise
+        # every reported energy at the grouping window (1e-3 eV from the GUI).
+        self.evals = np.array(evals)
+        self.evals_full = np.array(evals)
         self.evecs = evecs
     def get_representation(self,A,n=6):
         """Representation of a certain operator in a basis"""
@@ -172,12 +171,18 @@ class Lowest_States():
         if self.atom is None: raise
         from .gtensor import get_gtensor
         self.gtensor = get_gtensor(self.atom,self.h)
-    def get_gs_degeneracy(self,T=1e-4):
-      """Gets the degeneracy of each manifold"""
+    def get_gs_degeneracy(self,tol=None,T=None):
+      """Gets the degeneracy of the ground state manifold
+
+      Returns (degeneracy, ground state energy). The degeneracy is the integer
+      number of states within tol of the minimum, consistent with
+      get_degeneracies/get_manifolds. It used to be a Boltzmann weight at a
+      fixed absolute T=1e-4 eV, which is fractional for any manifold split on
+      the sub-meV scale this code targets."""
+      if tol is None: tol = globals()["tol"] if T is None else T # T: old name
       me = np.min(self.evals) # minimum energy
       de = np.abs(self.evals - me) # shift energy
-      ngs = np.sum(np.exp(-1./T*de)) # exponential degeneracy
-  #    ngs = len(de[de<=tol]) # number of states within an interval
+      ngs = int(np.sum(de<tol)) # number of states within the tolerance
       return ngs,me
     def get_gs_multiplicity(self,**kwargs):
       """Get the ground state multiplicity"""
@@ -198,7 +203,7 @@ class Lowest_States():
       """Gets the energies of the excited states"""  
       dgs = self.get_degeneracies()
       es = [d[1] for d in dgs] # return only the eigenvalues
-      es = [np.round(es[i] - es[0],ntol) for i in range(len(es))] # return only en diff
+      es = [es[i] - es[0] for i in range(len(es))] # return only en diff
       return es
     def get_gs_manifold(self):
       """Returns the vectors of the GS manifold"""
@@ -231,12 +236,14 @@ class Lowest_States():
         if B is None: B = A
         from .dynamicstk import dynamics
         es,ds = 0,0
-        for wf0 in self.get_gs_manifold():
+        gsm = self.get_gs_manifold() # ground state manifold
+        e0 = self.e0 # unshifted ground state energy, computed once
+        for wf0 in gsm:
             (ei,di) = dynamics.dynamical_correlator(self.h,
-                    A,B,wf0=wf0,**kwargs)
+                    A,B,wf0=wf0,e0=e0,**kwargs)
             es = ei
             ds = ds + di
-        return es,ds
+        return es,ds/len(gsm) # average over the degenerate ground states
     def get_correlation_entropy(self,wf):
         from . import entropy
         return entropy.correlation_entropy(self.atom,wf)
@@ -258,7 +265,7 @@ def get_degeneracies(arr):
       dg += 1 # increase counter
     else:
       arrrec.append(a)
-  pdg =(dg,np.round(me,ntol)) # append degeneracy
+  pdg =(dg,me) # append degeneracy, with the exact manifold energy
   if len(arrrec)>0: 
     return [pdg] + get_degeneracies(arrrec) # if still numbers, iterate
   else: 
@@ -285,8 +292,9 @@ def get_manifolds(evals,evecs):
 
 
 
-def get_gs_manifold(evals,evecs,tol=tol):
+def get_gs_manifold(evals,evecs,tol=None):
   """ Return a list with the GS manifold"""
+  if tol is None: tol = globals()["tol"] # read at call time, as the siblings do
   me = min(evals) # minimum
   wfm = [] # list for the wavefunctions in this manifold
   evalsrec = [] # list for eigenvalues left
@@ -305,17 +313,10 @@ def get_gs_manifold(evals,evecs,tol=tol):
 
 def get_representation(wfs,A):
   """Gets the matrix representation of a certain operator"""
-  n = len(wfs) # number of eigenfunctions
-  ma = np.matrix([[0.0j for i in range(n)] for j in range(n)]) # representation of A
-  from scipy.sparse import csc_matrix as csc
-  sa = csc(A) # sparse matrix
-  for i in range(n):
-    vi = csc(np.conjugate(wfs[i])) # first wavefunction
-    for j in range(n):
-      vj = csc(wfs[j]).transpose() # first wavefunction
-      data = (vi*sa*vj).todense()[0,0]
-      ma[i,j] = data
-  return ma
+  # One sparse-times-dense product for all the vectors at once; the previous
+  # implementation built three sparse matrices and densified per matrix element.
+  W = np.array(wfs) # n x N matrix of wavefunctions
+  return np.asmatrix(np.conjugate(W)@(A@W.T))
 
 
 

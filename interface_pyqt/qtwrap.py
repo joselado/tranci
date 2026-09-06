@@ -25,13 +25,26 @@ app = QtWidgets.QApplication(sys.argv)  # A new instance of QApplication
 
 
 
+def show_error(message,title="Error"):
+    """Report an error in the GUI, not only on a terminal nobody may see"""
+    print(title+": "+message)
+    try:
+        QtWidgets.QMessageBox.critical(None,title,message)
+    except Exception: # never let the reporting itself break the callback
+        pass
+
+
 def get_failsafe(f,robust=True):
     """Return a function that if fails things do not break down"""
     def fout():
         if not robust: return f()
-        try: f()
-        except:
-            print("Something wrong happened")
+        try: return f()
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            # PyQt aborts the whole process on an exception escaping a slot,
+            # so everything reaching a button must be caught here
+            show_error("%s: %s"%(type(e).__name__,e))
             return None
     return fout
 
@@ -48,7 +61,7 @@ class App(QtGui.QMainWindow, interface.Ui_MainWindow):
     def connect_clicks(self,ds0):
       """Connect the different functions"""
       ds = dict()
-      for d in ds0: ds[d] = get_failsafe(ds0[d],robust=False)
+      for d in ds0: ds[d] = get_failsafe(ds0[d],robust=True)
       for d in ds:
           bu = getattr(self,d) # label in the interface
           fun = ds[d] # function to call
@@ -62,16 +75,39 @@ def main():
     return form
 
 
+def add_numeric_validators(names):
+  """Attach a numeric validator to the given QLineEdit widgets
+
+  interface.ui ships no validators, so the fields accept anything; a locale
+  decimal comma or a stray unit used to become a silent zero.
+  """
+  from PyQt5.QtGui import QDoubleValidator
+  from PyQt5.QtCore import QLocale
+  val = QDoubleValidator()
+  val.setNotation(QDoubleValidator.ScientificNotation)
+  val.setLocale(QLocale(QLocale.C)) # a dot is the decimal separator
+  for name in names:
+    obj = getattr(form,name,None)
+    if obj is None: continue # widget not in this interface
+    try: obj.setValidator(val)
+    except AttributeError: pass # not a QLineEdit
+
+
 def get(name,string=False):
   try:
     obj = getattr(form,name) # get the object
-    out = obj.text()
-    print(name,out)
-    if string: return out # return as string
-    else: return float(out) # return as float
-  except:
+  except AttributeError: # a genuinely missing widget keeps the old behaviour
     print(name,"not found, set to zero")
     return 0
+  out = obj.text()
+  print(name,out)
+  if string: return out # return as string
+  try:
+    return float(out) # return as float
+  except (TypeError,ValueError):
+    # do not silently zero a parameter: that changes the physics with no trace
+    raise ValueError("The field '%s' does not contain a valid number: '%s'"
+                     %(name,out))
 
 
 

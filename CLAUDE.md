@@ -41,7 +41,7 @@ cd .. && python runall.py                   # loops ne=1..9, writes nelectrons.i
 
 `compile.sh` is a Linux/Mac-only bash script; `cilib/` is committed, so a Windows user never regenerates it. `runall.py` and `clean.py` themselves are cross-platform and will pick up `main.exe` if one was built.
 
-`runall.py` starts with `rm -r cilib`, so run it only from `src/tranci/cpplib/` and expect to move the result into place.
+`runall.py` starts by deleting `cilib/` with `shutil.rmtree`, so run it only from `src/tranci/cpplib/` and expect to move the result into place. It now aborts (`check=True`) if the C++ generator fails, instead of copying the previous occupation's files.
 
 ## Architecture
 
@@ -53,10 +53,10 @@ Data flow: **C++ (`cpplib`) → sparse `.op` files in `cilib/<ne>/` → `CIatom`
 - Orbital index convention (from `orbital.in`): indices 0-4 are m = -2..+2 spin-up, 5-9 are m = -2..+2 spin-down. Rows of `basis.out` are the 10-bit occupation vectors in that order, one per many-body basis state.
 - `.op` file format: first line `# SIZE = d`, then `i j real imag` rows for a sparse Hermitian matrix. `read.read_matrix` wraps everything in a bare `except` — a malformed or empty file silently yields a **zero matrix** rather than an error.
 - Energies are in **eV** everywhere; `templates.py` converts to GHz/meV when writing `SPECTRUM.OUT`.
-- Degenerate manifolds are grouped by `hamiltonians.tol` / `ntol`, which are **module-level globals** mutated by the GUI at runtime. `get_gs_degeneracy()` returns a *float* (a Boltzmann weight at T=1e-4), which is why callers do `int(np.round(deg))`.
-- `hamiltonians.build_hamiltonian(atom, p)` exists for the GUI only: `p` must carry `D, E, U, soc, O, z4, x2y2, trigonal, b, j` (plus optional `cf`, `Uc`). Library code bypasses it and assembles `H` directly.
+- Degenerate manifolds are grouped by `hamiltonians.tol` / `ntol`, which are **module-level globals** mutated by the GUI at runtime. `get_gs_degeneracy(tol=None)` returns an **int** — the number of states within `tol` of the minimum — and reads the module global when `tol` is not given (it used to return a Boltzmann weight at a fixed T=1e-4, which is why some callers still wrap it in `int(np.round(deg))`; that is now a no-op). `Lowest_States.evals` holds the **exact** eigenvalues; `ntol` is a grouping window, not a display precision.
+- `hamiltonians.build_hamiltonian(atom, p)` exists for the GUI only: `p` must carry `D, E, U, soc, x2y2, trigonal, j` (with `O`, `z4`, `b` optional and defaulting to zero, plus optional `Uc`); dict and object inputs are read through the same accessor, so both forms accept the same keys. Library code bypasses it and assembles `H` directly.
 - `effectivehamiltonian.py` imports **jax at module load** (pinned to CPU) and fits the low-energy block with a spin/orbital operator basis, returning LaTeX. It is pulled in by `write.write_all` whenever the GUI's "number of wavefunctions for H_eff" is > 1.
-- `write.write_all` assembles and writes `spectrum_ci.tex` only; the GUI is what invokes `pdflatex` (twice, for the table of contents). A library user calling `write_all` directly gets a `.tex` and no PDF.
+- `write.write_all` assembles and writes `spectrum_ci.tex` only; the GUI is what invokes `pdflatex` (twice, for the table of contents). A library user calling `write_all` directly gets a `.tex` and no PDF. It populates `lowest.gs_manifold`/`lowest.manifolds` itself, so it no longer requires the caller to have run `get_gs_manifold()`/`disentangle_manifolds()` first.
 
 ## Cross-platform constraints
 

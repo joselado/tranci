@@ -23,8 +23,8 @@ def zform(z):
   else:  # real part
     strn += recognise_number(z.real)
     if np.abs(z.imag)>tol: # if has imaginary part
-      if z.imag<0: strn += recognise_number(np.abs(z.imag))+"i" # positive
-      else: strn += "-"+recognise_number(np.abs(z.imag))+"i" # positive
+      if z.imag<0: strn += "-"+recognise_number(np.abs(z.imag))+"i" # negative
+      else: strn += "+"+recognise_number(np.abs(z.imag))+"i" # positive
   return strn
 #  elif z.imag>0: return recognise_number(z.real)+"+i"+recognise_number(z.imag) # positive
 #  elif z.imag<0: return recognise_number(z.real)+"-i"+recognise_number(np.abs(z.imag)) # positive

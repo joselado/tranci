@@ -124,15 +124,15 @@ def get_moments_ij(m0,n=100,i=0,j=0,use_fortran=use_fortran):
   else:
     mus = np.zeros(n,dtype=np.complex128) # empty arrray for the moments
     v = np.zeros(m.shape[0],dtype=np.complex128) ; v[i] = 1.0 # initial vector
-    v = np.matrix([v]).T # zero vector
+    v = v.reshape((m.shape[0],1)) # column vector
     am = v.copy()
-    a = m*v  # vector number 1
-    bk = v[j] # scalar product
+    a = m@v  # vector number 1
+    bk = v[j,0] # scalar product
     bk1 = a[j,0] # scalar product
     mus[0] = bk  # mu0
     mus[1] = bk1 # mu1
     for ii in range(2,n): 
-      ap = 2.*m*a - am # recursion relation
+      ap = 2.*(m@a) - am # recursion relation
       bk = ap[j,0] # scalar product
       mus[ii] = bk
       am = a.copy() # new variables
@@ -248,7 +248,7 @@ tdos0d = tdos # redefine
 def total_energy(m_in,scale=10.,npol=None,ne=500,ntries=20):
    x,y = tdos0d(m_in,scale=scale,npol=npol,ne=ne,ntries=ntries)
    z = .5*(np.sign(x)+1.)*x*y # function to integrate
-   return np.trapz(z,x)
+   return getattr(np,"trapezoid",getattr(np,"trapz",None))(z,x)
 
 
 
@@ -271,10 +271,7 @@ def random_trace(m_in,ntries=20,n=200,fun=None,operator=None):
     else:
       mus = get_momentsA(v,m,n=2*n,A=operator) # get the chebychev moments
     return mus
-#  from . import parallel
-#  out = [pfun(i) for i in range(ntries)] # perform all the computations
-  from . import parallel
-  out = parallel.pcall(pfun,range(ntries))
+  out = [pfun(i) for i in range(ntries)] # perform all the computations
   mus = np.zeros(out[0].shape,dtype=np.complex128)
   for o in out: mus = mus + o # add contribution
   return mus/ntries
@@ -315,7 +312,7 @@ def correlator0d(m_in,i=0,j=0,scale=10.,npol=None,ne=500,write=True,
   x=None):
   """Return two arrays with energies and local DOS"""
   if npol is None: npol = ne
-  mus = get_moments_ij(m_in/scale,n=npol,i=i,j=j,use_fortran=True)
+  mus = get_moments_ij(m_in/scale,n=npol,i=i,j=j,use_fortran=use_fortran)
   if np.sum(np.abs(mus.imag))>0.001:
 #    print("WARNING, off diagonal has nonzero imaginary elements",np.sum(np.abs(mus.imag)))
      pass
@@ -412,9 +409,9 @@ def generate_green_profile(mus,xs,kernel="jackson",use_fortran=use_fortran):
   else: raise
   if True:
     for i in range(1,len(mus)): # loop over mus
-      ys += np.exp(1j*i*np.arccos(xs))*mus[i] # add contribution
+      ys += np.exp(-1j*i*np.arccos(xs))*mus[i] # add contribution
     ys = ys/np.sqrt(1.-xs*xs)
-    return 1j*2*ys/np.pi
+    return -1j*2*ys/np.pi # retarded convention, so -Im(G) is a positive DOS
 #    if use_fortran: # call the fortran routine
 #      ys = kpmf90.generate_profile(mus,xs) 
 #    return ys
@@ -496,7 +493,8 @@ def edge_dos(intra0,inter0,scale=4.,w=20,npol=300,ne=500,bulk=False,
   else: return (xs,ds/w,dsb/w)
 
 
-from .kpmextrapolate import extrapolate_moments,deconvolution
+# NOTE: extrapolate_moments/deconvolution are imported lazily where needed;
+# a module-level import here pulls in statsmodels+pandas for every correlator call.
 
 
 
@@ -505,8 +503,8 @@ def reconstruct_chebyshev(mus,shift=0.,scale=1.0,
     num_p = len(mus)
     xs2 = 0.99*np.linspace(-1.0,1.0,int(num_p*10),endpoint=False) # energies
     ys2 = generate_profile(mus,xs2,use_fortran=False,kernel=kernel) # generate the DOS
-    xs2 += shift # add the shift
     xs2 *= scale # scale
+    xs2 += shift # add the shift (after scaling: E = x*scale + shift)
     ys2 /= scale # scale
     if x is None: return xs2,ys2
     else:

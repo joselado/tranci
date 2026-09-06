@@ -18,7 +18,10 @@ def read_matrix(namefile):
     col = [int(i) for i in m[1]] # column
     data = [i+1j*j for (i,j) in zip(m[2],m[3])] # data
     mout = csc_matrix((data,(row,col)),shape=(d,d),dtype=np.complex128) # create the matrix
-    if np.max(np.abs(mout.todense() - mout.todense().H))>0.00001: raise
+    # NOTE: like every failure in this block, this is caught below and turned
+    # into a zero matrix; it is a guard against using a corrupt file, not an
+    # error the caller sees (see CLAUDE.md)
+    if abs(mout - mout.getH()).max()>0.00001: raise ValueError("non hermitian")
     return mout
   except:
 #    print("empty matrix")
@@ -42,10 +45,11 @@ def read_basis(namefile,path=""):
   bs = [] # empty list
   try:
     orb = read_orbitals(path=path) 
-  except: # deafult orbitals
+  except (IOError,OSError,IndexError): # deafult orbitals
     orb = []
-    for i in ["-2","-1","0","+1","+2"]:
-      for s in ["\\uparrow","\\downarrow"]:
+    # spin is the slow index and m the fast one, matching orbital.in
+    for s in ["\\uparrow","\\downarrow"]:
+      for i in ["-2","-1","0","+1","+2"]:
         orb.append(i+s)
     print("Generating default names for the orbitals")
   for v in m:

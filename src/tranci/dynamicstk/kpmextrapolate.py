@@ -1,15 +1,17 @@
 import numpy as np
-from numba import jit
+try:
+    from numba import jit
+except ImportError: # numba is optional
+    def jit(*args,**kwargs):
+        if len(args)==1 and callable(args[0]) and not kwargs: return args[0]
+        return lambda f: f
 import scipy.linalg as lg
 from numpy.polynomial.polynomial import polyfit
-from statsmodels.tsa.ar_model import AutoReg
 #from statsmodels.tsa.ar_model import sarimax 
 
 
 import warnings
-from statsmodels.tsa.ar_model import AR
 
-from statsmodels.tsa.arima_model import ARIMA
 
 #import pmdarima as pm
 
@@ -89,6 +91,7 @@ def extrapolate_moments(mus0,fac,extrapolation_mode="1/n"):
     train = mus[0:L].real # train data
     test = mus[L:T] # test data
 #    model = AR(train).fit(ic="aic") # get the model
+    from statsmodels.tsa.ar_model import AutoReg # optional dependency
     lags = round(12*(len(train)/100.)**(1/4.))
     model = AutoReg(train,lags=lags,trend="ct").fit(cov_type="HC1") # get the model
 

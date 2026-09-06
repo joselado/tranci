@@ -139,9 +139,9 @@ def lowest_eigenvalues(h,n=10):
   else:
     if info: print("Full diagonalization")
     if ishermitian(h):
-      eig = dlg.eigvalsh(h.todense())
+      eig = dlg.eigvalsh(todense(h))
     else:
-      eig = dlg.eigvals(h.todense())
+      eig = dlg.eigvals(todense(h))
       eig,eigvec = sorteigen(eig,eig)
   return np.array(eig[0:n])
 
@@ -163,10 +163,10 @@ def lowest_states(h,n=10,**kwargs):
   else:
     if info: print("Full diagonalization")
     if ishermitian(h): # Hermitian matrix
-      eig,vs = dlg.eigh(h.todense())
+      eig,vs = dlg.eigh(todense(h))
       return eig[0:n],vs.T[0:n] 
     else: # non Hermitian matrix
-      eig,vs = dlg.eig(h.todense())
+      eig,vs = dlg.eig(todense(h))
       eig,vs = sorteigen(eig,vs.T)
       return eig[0:n],vs[0:n]
 

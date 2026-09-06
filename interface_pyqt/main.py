@@ -33,6 +33,11 @@ import qtwrap # import the library with simple wrappers to qt4
 get = qtwrap.get  # get the value of a certain variable
 getbox = qtwrap.getbox  # get the value of a certain variable
 window = qtwrap.main() # this is the main interface
+# reject malformed numbers as they are typed, instead of silently zeroing them
+qtwrap.add_numeric_validators(["U","n","soc","D","E","trigonal","O","z4",
+  "x2y2","B","theta_b","phi_b","j","theta_j","phi_j","tol_ene","nwf_heff",
+  "zaxis_x","zaxis_y","zaxis_z","initial_value","final_value","steps",
+  "lineEdit"])
 
 ## temporal folder, in the location for temporal files of this system
 temporal_folder = tempfile.mkdtemp(prefix="tranci_tmp_") # portable temporal folder
@@ -73,10 +78,25 @@ def show_pdf():
 
 
 def run_pdflatex():
-  """Compile the latex summary, without printing the output"""
-  subprocess.run(["pdflatex","-interaction=nonstopmode","spectrum_ci.tex"],
-          stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL) # run silently
+  """Compile the latex summary, returning True on success"""
+  r = subprocess.run(["pdflatex","-interaction=nonstopmode","spectrum_ci.tex"],
+          stdout=subprocess.PIPE,stderr=subprocess.STDOUT) # capture the output
+  if r.returncode!=0: # show why, instead of claiming success later
+    out = r.stdout.decode("utf-8","replace") if r.stdout else ""
+    print("pdflatex failed (exit %d). Last lines of its output:"%r.returncode)
+    for l in out.splitlines()[-20:]: print("  "+l)
+    return False
+  return True
 
+
+
+def sweep_label(stype):
+  """Axis label for a swept variable
+
+  The angular entries of the sweep combobox are theta_B/phi_B/theta_J/phi_J,
+  and get_b multiplies them by pi, so they are in units of pi radians."""
+  if stype in ["theta_B","phi_B","theta_J","phi_J"]: return stype+" [$\\pi$ rad]"
+  return stype+" [eV]"
 
 
 def get_b(babs,theta,phi):
@@ -133,12 +153,14 @@ def initialize_one_shot():
     print("pdflatex not found, only spectrum_ci.tex was written")
     print("Install a LaTeX distribution (MiKTeX in Windows) for the pdf summary")
     return
-  run_pdflatex() # compile the latex file
-  run_pdflatex() # do it twice, so that the index is right
+  ok = run_pdflatex() # compile the latex file
+  ok = run_pdflatex() and ok # do it twice, so that the index is right
+  if not ok or not os.path.isfile("spectrum_ci.pdf"): # do not claim success
+    print("The PDF summary could not be created; spectrum_ci.tex was written")
+    return
   print("#########################")
   print("## PDF Summary created ##")
   print("#########################")
-  shutil.copy("spectrum_ci.pdf",os.path.dirname(temporal_folder)) # previous folder
 
 
 
@@ -199,7 +221,7 @@ def plot_eigenvalues(write=True,center=True):
   fig.subplots_adjust(.2,.15) # adjust the subplots
   ys = np.array(ys).transpose() # row is same eigenvector evolving
   # number of energies to plot
-  nenergies = int(get("num_ene_plot")) # number of energies to plot
+  nenergies = int(get("lineEdit")) # number of energies to plot
   if 0 < nenergies < len(ys): ys = np.array([ys[i] for i in range(nenergies)])
   else: pass
 
@@ -221,8 +243,7 @@ def plot_eigenvalues(write=True,center=True):
   py.xlim([min(xs),max(xs)]) # 
   py.ylabel("Energy [eV]")  # label for the y axis
   stype = getbox("sweep_variable")
-  if stype in ["Phi","Theta"]: py.xlabel(stype+" [rad]")  # label for the x axis
-  else: py.xlabel(stype+" [eV]")  # label for the x axis
+  py.xlabel(sweep_label(stype))  # label for the x axis
   fig.set_facecolor("white")
   py.tight_layout()
   py.show()
@@ -251,7 +272,7 @@ def plot_degeneracy():
   fsweep = initialize_sweep() # get the generator function
   gst = [fsweep(ix) for ix in xs]  # create the list of objects
   T = hamiltonians.tol # tolerancy
-  ds = [g.get_gs_multiplicity(T=T) for g in gst] # get degeneracies 
+  ds = [g.get_gs_multiplicity(tol=T) for g in gst] # get degeneracies
   fig = py.figure() # create figure
   fig.subplots_adjust(.2,.15) # adjust the subplots
   py.plot(xs,ds,c="green",marker="o") 
@@ -260,8 +281,7 @@ def plot_degeneracy():
   py.ylim([0,max(ds)+1]) # 
   py.ylabel("Degeneracy")  # label for the y axis
   stype = getbox("sweep_variable")
-  if stype in ["Phi","Theta"]: py.xlabel(stype+" [rad]")  # label for the x axis
-  else: py.xlabel(stype + "[eV]")  # label for the y axis
+  py.xlabel(sweep_label(stype))  # label for the x axis
   fig.set_facecolor("white")
   py.tight_layout()
   py.show()
@@ -332,8 +352,7 @@ def plot_operator():
 #  py.ylim([min(evals),max(evals)]) # 
   py.ylabel("$\\langle "+oname+"\\rangle$")  # label for the y axis
   stype = getbox("sweep_variable")
-  if stype in ["Phi","Theta"]: py.xlabel(stype+" [rad]")  # label for the x axis
-  else: py.xlabel(stype+"  [eV]")  # label for the y axis
+  py.xlabel(sweep_label(stype))  # label for the x axis
   fig.set_facecolor("white")
   py.tight_layout()
   py.show() # show graph

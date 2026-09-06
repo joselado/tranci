@@ -35,7 +35,7 @@ def return_square(keyi,m,dd):
             out += "\\begin{equation}\n"
             out += key2latex(keyi) +"  "
             out += key2latex(keyi) +"  ="
-            c = ratio(dd[keyk],m) # ratio
+            c = ratio(m,dd[keyk]) # ratio
             out += zform(c)
             out += key2latex(keyk) +"  \n"
             out += "\\end{equation}\n"
@@ -85,10 +85,7 @@ def ratio(a,b):
     """Ratio between two vectors"""
     a = matrix2vector(a)
     b = matrix2vector(b)
-    out = braket(b,a)
-    aa = np.sqrt(braket(a,a))
-    bb = np.sqrt(braket(b,b))
-    out = out/(aa*aa) # normalize
+    out = braket(b,a)/braket(b,b) # coefficient c such that a = c*b
     return out
 
 

@@ -1,4 +1,4 @@
-import angular
+from . import angular
 from scipy.sparse import csc_matrix as csc
 from scipy.sparse import coo_matrix
 from scipy.sparse import bmat
@@ -89,9 +89,9 @@ def get_operators(cftype):
   (lx,ly,lz) = angular.angular(l=2) # angular terms
   terms = [] # empty list
   if cftype=="all":
-    terms = [lx**4,ly**4,lz**4] # quartic
+    terms = [lx**4+ly**4+lz**4] # quartic, one octahedral combination
     terms += [ly**2*lz**2,lx**2*lz**2,lx**2*ly**2] # quartic C4
-    names = ["x4+y4+z4","y2z2","x2z2","x2y2"]
+    names = ["x4+y4+z4","y2z2","x2z2","x2y2"] # one name per term
   elif cftype=="C4":
     terms = [np.matrix(np.identity(5))] # square
     terms += [lz**2] # square

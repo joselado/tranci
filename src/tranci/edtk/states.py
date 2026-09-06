@@ -78,13 +78,13 @@ def one2many_basis(m,basis,bdict=None):
   if nm!=len(basis[0]): raise # error if wrong dimensions
   on = len(basis) # dimension of output matrix
   nout = len(basis) # length of the output matrix
-  mout = csc_matrix(([],([],[])),shape=(on,on)) # output matrix
+  ii = [] # row indexes
+  jj = [] # column indexes
+  vals = [] # values
   for i in range(nm): # loop over states
     for j in range(nm): # loop over states
       a = m[j,i] # matrix element
-      ii = np.zeros(on,dtype=int) # indexes
-      jj = np.zeros(on,dtype=int) # indexes
-      vals = np.zeros(on,dtype=np.complex128) # values
+      if a==0: continue # skip zero elements, as four2many does
       for ib in range(len(basis)): # loop over basis elements
         b = basis[ib] # get the vector
         if b[i]==0: continue # next iteration, destructor empty
@@ -93,12 +93,11 @@ def one2many_basis(m,basis,bdict=None):
         bo[i] = 0 # empty the level
         bo[j] = 1 # fill the level
         jb = bdict[tuple(bo)] # get index of the out vector
-     #   except: continue # state is not in basis
-        ii[ib] = ib # store index 
-        jj[ib] = jb # store index 
-        vals[ib] = a*fermi_sign(b.copy(),i,j) # store value
-      mi = csc_matrix((vals,(jj,ii)),shape=(on,on)) #  matrix
-      mout = mout + mi # add contribution
+        ii.append(ib) # store index
+        jj.append(jb) # store index
+        vals.append(a*fermi_sign(b.copy(),i,j)) # store value
+  # build the matrix once instead of accumulating nm*nm sparse additions
+  mout = csc_matrix((np.array(vals,dtype=np.complex128),(jj,ii)),shape=(on,on))
   return mout # return matrix
   
 

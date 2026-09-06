@@ -39,7 +39,7 @@ def fit_matrix(h,d,cutoff=1e-5,ntries=40,simp = 1e1):
     n = len(ms) # number of matrices
     mh = h.copy() # make a copy of the Hamiltonian
     def f(v): # function to minimize
-        return errorf(v,mh,ms,simp=simp)
+        return errorf_jax(v,mh,ms,simp=simp)
     def jac(v):
         return jacobian_jax(v,mh,ms,simp=simp)
     from scipy.optimize import minimize
@@ -69,10 +69,19 @@ def fit_matrix(h,d,cutoff=1e-5,ntries=40,simp = 1e1):
 #          print(x[ii])
 #          print(np.round(d[key],2))
         ii += 1 # increase counter
+    e_in = np.linalg.eigvalsh(h) # spectrum to reproduce
+    e_out = np.linalg.eigvalsh(h0) # spectrum of the fitted Hamiltonian
     print("Original eigenvalues")
-    print(np.round(np.linalg.eigvalsh(h),6))
+    print(np.round(e_in,6))
     print("New eigenvalues")
-    print(np.round(np.linalg.eigvalsh(h0),6))
+    print(np.round(e_out,6))
+    scale = np.max(np.abs(e_in)) # energy scale of the manifold
+    if scale>0.: # relative error of the fitted spectrum
+        fit_matrix.relative_error = float(np.max(np.abs(e_in-e_out))/scale)
+    else: fit_matrix.relative_error = 0.
+    if fit_matrix.relative_error>1e-2: # the basis cannot represent this H
+        print("WARNING: the effective Hamiltonian reproduces the spectrum only "
+              "to %.1f%%"%(100*fit_matrix.relative_error))
 #    h0 = h0 + np.conjugate(h0.T)
 #    print(np.linalg.eigvalsh(h0/2.),"Computed Hamiltonian")
     return out # return the coefficients
@@ -162,8 +171,7 @@ def get_fitting_operators(lowest,nt=2,n=2,npow=2,dd=None):
     for ip in range(npow):
       if nt>0: # linear terms
         for di in dd: # loop
-          m = dd[di] # store this term
-          for ii in range(ip-1): m = m@m # power
+          m = np.linalg.matrix_power(dd[di],ip+1) # power ip+1
           if ip==0: spow = ""
           else: spow = "^"+str(ip+1)
   #        m = lowest.get_representation(m,n=n)
@@ -174,14 +182,14 @@ def get_fitting_operators(lowest,nt=2,n=2,npow=2,dd=None):
       if nt>1: # bilinear terms
         for di in dd: # loop
           for dj in dd: # loop
-            mi = dd[di]
-            mj = dd[dj]
-            for ii in range(ip-1): 
-              mi = mi@mi # power
-              mj = mj@mj # power
+            mi = np.linalg.matrix_power(dd[di],ip+1) # power ip+1
+            mj = np.linalg.matrix_power(dd[dj],ip+1) # power ip+1
             if ip==0: spow = ""
             else: spow = "^"+str(ip+1)
-            m = mi@mj
+            # symmetrize: for non-commuting operators mi@mj is not Hermitian,
+            # so a real-coefficient fit could not represent it and the emitted
+            # formula was not Hermitian either
+            m = (mi@mj + mj@mi)/2.
   #          m = lowest.get_representation(m,n=n)
   #          out[(di,dj)] = m # store this matrix
             if acceptable_matrix(m,out): # if the matrix can be accepted
@@ -193,7 +201,6 @@ def get_fitting_operators(lowest,nt=2,n=2,npow=2,dd=None):
 
 def effective_hamiltonian(lowest,n=2,nt=2):
     """Compute the effective Hamiltonian in Latex form"""
-    return "" # this has to be fixed
     # get the Hmailtonian
     h = lowest.get_representation(lowest.h,n=n) # Hamiltonian
     h = h - np.identity(h.shape[0])*np.trace(h)/h.shape[0] # no trace
@@ -206,13 +213,17 @@ def effective_hamiltonian(lowest,n=2,nt=2):
     ops = [ls,sj,lj] # operators
     names = ["LS","SJ","LJ"] # names
     for (dd,name) in zip(ops,names): # loop over pairs of effective operators
-      out = get_fitting_operators(lowest,nt=nt,n=n,dd=dd) # get the operators
+      # project onto the low energy manifold first: get_fitting_operators mixes
+      # these with an n x n identity, so full-size operators cannot be used
+      ddp = dict()
+      for key in dd: ddp[key] = lowest.get_representation(dd[key],n=n)
+      out = get_fitting_operators(lowest,nt=nt,n=n,dd=ddp) # get the operators
       # project onto the desired low energy manifold
       # now fit the Hamiltonian
       coef = fit_matrix(h,out) # fit the matrix and return dictionary
       try: del coef[("Id")]
       except: pass
-      if len(coef)==0: return ""
+      if len(coef)==0: continue # nothing survived for this set; try the next
       text += "\\subsection{Low energy Hamiltonian with "+name+" operators}"
       text += "\\begin{equation}\n"
       text +=  dict2latex(coef) # return the latex format
@@ -230,9 +241,22 @@ def effective_hamiltonian(lowest,n=2,nt=2):
 
 
 def key2latex(key):
+    if isinstance(key,str): return key + "  " # a plain key is not a sequence
     out = ""
     for k in key: out += k + "  "
     return out
+
+
+def scale2latex(c,tol=1e-12):
+    """Format the overall (eV) prefactor of the effective Hamiltonian
+
+    zform is meant for dimensionless ratios: it snaps anything below its own
+    absolute tolerance of 1e-3 to "0", which silently erased meV-scale spin
+    Hamiltonian parameters. Print the physical scale as a real number instead.
+    """
+    re,im = float(np.real(c)),float(np.imag(c))
+    if np.abs(im)>tol: return "({:.4e}{:+.4e}i)".format(re,im)
+    return "{:.4e}".format(re)
 
 
 def dict2latex(d,tol=1e-4):
@@ -241,21 +265,23 @@ def dict2latex(d,tol=1e-4):
     cmax = [iy for (ix,iy) in sorted(zip(np.abs(cs),cs))][-1] 
     keys = [key for key in d] # get the keys
     keys = [iy for (ix,iy) in sorted(zip(-np.abs(cs),keys))] # sort the keys
-    out = "\\begin{aligned}\n"
-    out += "H = \n"+zform(cmax)+" \\left [ " # output string
-    ik = 0 # counter
-    nk = len(keys)
+    terms = [] # the terms that survive the tolerance
     for key in keys: # loop
         c = np.round(d[key]/cmax,4) # round the number
         if np.abs(c)<tol: continue
-        if .99<c<1.01: out += "  "
-        else: out += zform(c) + "  " # normalize
-        out += key2latex(key) # create the name
-        ik +=1 # increase counter
-        if ik<nk: out += " + \n" # new line
-        if ik%3==0: 
-          out += "\\\\ \n" # new line
-    out += " \\right ] \n" # last line
+        if .99<np.real(c)<1.01 and np.abs(np.imag(c))<tol: s = "  " # unit coefficient
+        else: s = zform(c) + "  " # normalize
+        terms.append(s + key2latex(key)) # create the name
+    out = "\\begin{aligned}\n"
+    # \big instead of \left/\right: a row break (\\) inside a \left...\right
+    # group is a hard LaTeX error as soon as three terms survive
+    out += "H = \n"+scale2latex(cmax)+" \\big [ " # output string
+    for (ik,t) in enumerate(terms): # loop over surviving terms
+        out += t
+        if ik<len(terms)-1: # separator only between terms
+            out += " + \n" # new line
+            if (ik+1)%3==0: out += "\\\\ \n" # new line
+    out += " \\big ] \n" # last line
     out += "\\end{aligned}\n"
     return out
 
@@ -274,7 +300,7 @@ def acceptable_matrix(m,ops):
         out.append(vo)
     r = np.linalg.matrix_rank(np.array(out),tol=1e-3)
     if r==(len(ops)+1): return True
-    else: False
+    else: return False
 
 def braket(a,b):
     return np.abs(np.conjugate(a).dot(b))
@@ -312,20 +338,35 @@ def effective_spin_hamiltonian(lowest,H=None,n=2,nt=2,operators=None):
     text += "\\begin{equation}\n"
     text +=  dict2latex(coef) # return the latex format
     text += "\\end{equation}\n\n"
+    text += fit_warning() # say so if the fit is poor
     return text
 
 
 
+def fit_warning():
+    """Latex note when the fitted spectrum does not match the real one"""
+    err = getattr(fit_matrix,"relative_error",0.)
+    if err<=1e-2: return ""
+    return ("\n\n\\textbf{Warning:} this effective Hamiltonian reproduces the "
+            "spectrum of the manifold only to %.1f\\%%; the operator basis "
+            "cannot represent it.\n\n"%(100*err))
+
+
 def renormalize_spin_operator(m):
-    """Given a spin operator, renormalize it so that
-    it looks similar to a pristine operator"""
+    """Rescale a projected spin operator to the pseudo-spin convention
+
+    The operator is scaled so that its largest eigenvalue in magnitude equals
+    S = (n-1)/2 for an n-dimensional manifold, i.e. it has the spectrum of a
+    spin-S component and the printed \\hat S_x/S_y/S_z labels mean what they
+    say. Previously each component was divided by its own smallest |eigenvalue|
+    above a hard-coded 0.1, which scaled the transverse and axial components
+    differently and made the fitted coefficients incomparable."""
     from .dynamicstk import algebra
-    es = algebra.eigvalsh(m) # eigenvalues
-    es = np.abs(es) # absolute value of energies
-    es = es[es>1e-1] # positive ones
-    if len(es)>0:
-        scale = np.min(es)
-        return m/scale
-    else: return m*0.
+    n = m.shape[0] # dimension of the manifold
+    S = (n-1)/2. # pseudo-spin
+    es = np.abs(algebra.eigvalsh(m)) # magnitudes of the eigenvalues
+    emax = np.max(es) if len(es)>0 else 0.
+    if emax<1e-8: return m*0. # the operator vanishes in this manifold
+    return m*(S/emax)
 
 

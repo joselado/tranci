@@ -6,18 +6,34 @@ import platform
 bindir = os.path.join(os.path.dirname(os.path.realpath(__file__)),"bin") # path to bin
 
 
+def get_rcfile():
+  """Return the startup file of the login shell, and its name"""
+  shell = os.path.basename(os.environ.get("SHELL","")) # login shell
+  home = os.path.expanduser("~")
+  if shell=="zsh": return os.path.join(home,".zshrc"),"zsh"
+  if shell in ("bash",""): # bash, or unknown
+    if platform.system()=="Linux": return os.path.join(home,".bashrc"),"bash"
+    return os.path.join(home,".bash_profile"),"bash" # login bash on Mac
+  # some other shell: fall back to the platform default for bash
+  if platform.system()=="Linux": return os.path.join(home,".bashrc"),shell
+  return os.path.join(home,".bash_profile"),shell
+
+
 def install_unix():
   """Add tranci to the PATH in Linux and Mac"""
+  # quote the path, otherwise a folder with a space breaks every new shell
+  exportline = 'export PATH="$PATH:%s"' % bindir
   addpath = "\n\n# Path to tranci, CI for transition metals on surfaces\n"
-  addpath += "export PATH=$PATH:"+bindir+"\n\n" # folder with the executable
-  if platform.system()=="Linux":
-    rcfile = os.path.join(os.path.expanduser("~"),".bashrc") # path to .bashrc
-    print("Detected Linux system")
-  else:
-    rcfile = os.path.join(os.path.expanduser("~"),".bash_profile") # path to .bash_profile
-    print("Detected Mac system")
+  addpath += exportline + "\n\n" # folder with the executable
+  print("Detected",platform.system(),"system")
+  rcfile,shell = get_rcfile() # startup file of the login shell
+  if os.path.isfile(rcfile): # do not append the same line twice
+    with open(rcfile,"r") as f: current = f.read()
+    if exportline in current:
+      print("tranci is already in your $PATH in",rcfile)
+      return
   with open(rcfile,"a") as f: f.write(addpath) # add the line
-  print("Added to your $PATH in",rcfile)
+  print("Added to your $PATH in",rcfile,"(startup file of %s)"%shell)
 
 
 def install_windows():
