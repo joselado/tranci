@@ -1,7 +1,7 @@
 ###############################################
 ###############################################
 ###############################################
-#### This file has simple wrappers to qt4  ####
+#### This file has simple wrappers to PyQt5 ####
 ###############################################
 ###############################################
 ###############################################
@@ -32,6 +32,29 @@ def show_error(message,title="Error"):
         QtWidgets.QMessageBox.critical(None,title,message)
     except Exception: # never let the reporting itself break the callback
         pass
+
+
+def show_warning(message,title="Warning"):
+    """Report a non-fatal problem in the GUI"""
+    print(title+": "+message)
+    try: QtWidgets.QMessageBox.warning(None,title,message)
+    except Exception: pass
+
+
+def show_info(message,title="Tranci"):
+    """Report a result in the GUI"""
+    print(title+": "+message)
+    try: QtWidgets.QMessageBox.information(None,title,message)
+    except Exception: pass
+
+
+def status(message,timeout=0):
+    """Show a message in the status bar of the main window"""
+    print(message)
+    try:
+        form.statusbar.showMessage(message,timeout)
+        app.processEvents() # paint it now, the callback may take long
+    except Exception: pass
 
 
 def get_failsafe(f,robust=True):
@@ -65,8 +88,8 @@ class App(QtGui.QMainWindow, interface.Ui_MainWindow):
       for d in ds:
           bu = getattr(self,d) # label in the interface
           fun = ds[d] # function to call
-#          self.connect(bu, SIGNAL("clicked()"),fun) # connect name to function
-          bu.clicked.connect(fun) # connect name to function
+          if hasattr(bu,"clicked"): bu.clicked.connect(fun) # button
+          else: bu.triggered.connect(fun) # menu action
 
 
 def main():
@@ -99,6 +122,10 @@ def get(name,string=False):
   except AttributeError: # a genuinely missing widget keeps the old behaviour
     print(name,"not found, set to zero")
     return 0
+  if hasattr(obj,"value"): # QSpinBox, already validated by the widget
+    out = obj.value()
+    print(name,out)
+    return str(out) if string else out
   out = obj.text()
   print(name,out)
   if string: return out # return as string
@@ -121,16 +148,56 @@ def getbox(name):
 
 
 
-def modify(name,text):
-  obj = getattr(form,name) # get the object
-  out = obj.setText(str(text))
-  app.processEvents() # update the interface
-
-
 def set_value(name,text):
   obj = getattr(form,name) # get the object
-  out = obj.setText(str(text))
+  if hasattr(obj,"setValue"): obj.setValue(int(text)) # QSpinBox
+  else: obj.setText(str(text)) # QLineEdit
   app.processEvents() # update the interface
+
+modify = set_value # old name
+
+
+INPUT_TYPES = (QtWidgets.QLineEdit,QtWidgets.QSpinBox,QtWidgets.QComboBox,
+               QtWidgets.QCheckBox) # widgets that hold user parameters
+
+
+def input_widgets():
+  """Return {name: widget} for every parameter field of the interface"""
+  out = dict()
+  for w in form.centralwidget.findChildren(INPUT_TYPES):
+    name = w.objectName()
+    if name.startswith("qt_"): continue # internal children of a spinbox
+    out[name] = w
+  return out
+
+
+def get_all_inputs():
+  """Return every parameter field of the interface as {name: value}"""
+  out = dict()
+  for name,w in input_widgets().items():
+    if isinstance(w,QtWidgets.QSpinBox): out[name] = w.value()
+    elif isinstance(w,QtWidgets.QComboBox): out[name] = w.currentText()
+    elif isinstance(w,QtWidgets.QCheckBox): out[name] = w.isChecked()
+    else: out[name] = w.text()
+  return out
+
+
+def set_all_inputs(d):
+  """Fill the parameter fields from a dictionary, return the unknown keys"""
+  ws = input_widgets()
+  unknown = []
+  for name,v in d.items():
+    w = ws.get(name,None)
+    if w is None: unknown.append(name) ; continue
+    if isinstance(w,QtWidgets.QSpinBox): w.setValue(int(v))
+    elif isinstance(w,QtWidgets.QComboBox):
+      i = w.findText(str(v))
+      if i<0: unknown.append(name+"="+str(v)) # option no longer offered
+      else: w.setCurrentIndex(i)
+    elif isinstance(w,QtWidgets.QCheckBox): w.setChecked(bool(v))
+    else: w.setText(str(v))
+  app.processEvents() # update the interface
+  return unknown
 
 
 def is_checked(name):
@@ -152,11 +219,6 @@ def set_logo(name,path):
   set_image(name,path)
   
 
-
-
-def connect_signals(ds):
-  for d in ds: # loop over names
-    form.connect(self.pb, SIGNAL("clicked()"),self.button_click)
 
 
 

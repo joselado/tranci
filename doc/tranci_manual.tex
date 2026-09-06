@@ -950,9 +950,45 @@ MacTeX elsewhere).
 
 \subsection{Parameters}
 
-The interface builds a fixed Hamiltonian from the fields below.  Each field
+All parameters are visible at once in the \op{Parameters} panel, grouped as
+\op{Atom}, \op{Crystal field} and \op{Zeeman and exchange fields}.  The
+interface builds a fixed Hamiltonian from the fields below.  Each field
 multiplies exactly one operator of Sec.~\ref{sec:ham}; all of them are in eV
 except \op{U}, which is a dimensionless multiplier (Sec.~\ref{sec:coulomb}).
+Hovering over any field shows a tooltip with its meaning.  The number of
+electrons and the other integer fields are spin boxes and only accept values in
+their valid range; the real-valued fields reject anything that is not a number
+as it is typed.
+
+Next to every field the interface shows the operator it multiplies, written in
+second quantization and rendered from \TeX\ at start-up (hovering over a
+formula shows its \TeX\ source).  Here $\cd{m\sigma}$ creates an electron with
+$l_z=m$ ($m=-2,\dots,2$) and spin $\sigma$ in the $d$ shell, lower-case $l,s$
+are single-particle operators and $V_{ijkl}$ is the tensor of
+Eq.~\eqref{eq:vee}:
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Field & Second-quantized operator\\
+\midrule
+\op{\# of electrons} & $\hat N=\sum_{m\sigma}\cd{m\sigma}\cc{m\sigma}$\\[2pt]
+\op{U} & $U\sum_{ijkl}\sum_{\sigma\sigma'}V_{ijkl}\,\cd{i\sigma}\cd{j\sigma'}\cc{k\sigma'}\cc{l\sigma}$\\[2pt]
+\op{SOC} & $\lambda\sum_{mm'\sigma\sigma'}\langle m\sigma|\vec l\cdot\vec s|m'\sigma'\rangle\,\cd{m\sigma}\cc{m'\sigma'}$\\[2pt]
+\op{Uniaxial z\^{}2} & $D\sum_{m\sigma}m^{2}\,\cd{m\sigma}\cc{m\sigma}$\\[2pt]
+\op{Shear x\^{}2-y\^{}2} & $E\sum_{mm'\sigma}\langle m|l_x^{2}-l_y^{2}|m'\rangle\,\cd{m\sigma}\cc{m'\sigma}$\\[2pt]
+\op{Octahedral} & $O\sum_{mm'\sigma}\langle m|l_x^{4}+l_y^{4}+l_z^{4}|m'\rangle\,\cd{m\sigma}\cc{m'\sigma}$\\[2pt]
+\op{Trigonal} & $t\sum_{mm'\sigma}\langle m|(\vec l\cdot\hat n)^{2}|m'\rangle\,\cd{m\sigma}\cc{m'\sigma}$, \quad $\hat n=(1,1,1)/\sqrt3$\\[2pt]
+\op{Uniaxial' z\^{}4} & $D'\sum_{m\sigma}m^{4}\,\cd{m\sigma}\cc{m\sigma}$\\[2pt]
+\op{Shear' (xy)\^{}2+(yx)\^{}2} & $E'\sum_{mm'\sigma}\langle m|(l_xl_y)^{2}+(l_yl_x)^{2}|m'\rangle\,\cd{m\sigma}\cc{m'\sigma}$\\[2pt]
+\op{B} & $\vec B\cdot\sum_{mm'\sigma\sigma'}\langle m\sigma|\vec l+2\vec s|m'\sigma'\rangle\,\cd{m\sigma}\cc{m'\sigma'}$\\[2pt]
+\op{J} & $\vec J\cdot\sum_{m\sigma\sigma'}\vec s_{\sigma\sigma'}\,\cd{m\sigma}\cc{m\sigma'}$, \quad $\vec s=\vec\sigma/2$\\[2pt]
+\op{Theta}, \op{Phi} & $\hat B=(\sin\pi\theta_B\cos\pi\phi_B,\ \sin\pi\theta_B\sin\pi\phi_B,\ \cos\pi\theta_B)$, and likewise $\hat J$\\
+\bottomrule
+\end{tabular}
+\end{center}
+The uniaxial fields are diagonal in $m$ because $l_z|m\rangle=m|m\rangle$; the
+matrix elements of the other one-body operators are the $10\times10$ matrices
+of \op{Atom.SP\_Operator} (Sec.~\ref{sec:custom}).
 
 \begin{center}
 \begin{tabular}{lll}
@@ -966,7 +1002,7 @@ Field & Operator & Meaning\\
 \op{Shear x\^{}2-y\^{}2} & \op{x2-y2} & $E$, rhombic field\\
 \op{Octahedral x\^{}4+y\^{}4+z\^{}4} & \op{x4+y4+z4} & $O$, cubic field ($10Dq=6O$)\\
 \op{Uniaxial' z\^{}4} & \op{z4} & higher-order axial field\\
-\op{Shear' x\^{}2y\^{}2} & \op{x2y2} & higher-order in-plane field\\
+\op{Shear' (xy)\^{}2+(yx)\^{}2} & \op{x2y2} & higher-order in-plane field\\
 \op{Trigonal (x+y+z)\^{}2} & rotated \op{z2} & field along $(1,1,1)$\\
 \op{B [eV]}, \op{Theta\_B}, \op{Phi\_B} & $\vec b\cdot(\vec L+2\vec S)$ & Zeeman field\\
 \op{J [eV]}, \op{Theta\_J}, \op{Phi\_J} & $\vec J\cdot\vec S$ & exchange field (spin only)\\
@@ -979,14 +1015,30 @@ The angles $\theta$ and $\phi$ are given \emph{in units of $\pi$}, so
 $\theta=0.5,\ \phi=0$ means a field along $x$.  The direction is
 $\vec b = b(\sin\pi\theta\cos\pi\phi,\ \sin\pi\theta\sin\pi\phi,\ \cos\pi\theta)$.
 
-Under \op{Control}: \op{Energy tolerancy [eV]} sets the degeneracy-grouping
-window \op{tol} discussed above; \op{\# of WF for effective Hamiltonian} sets
-$n$ in Sec.~\ref{sec:heff} (leave it at $1$ to skip the fit, which requires
-\op{jax}); \op{Maximum number of eigenfunctions} limits how many levels are
-drawn in the sweep plots.  Under \op{Advanced}, the \op{z axis for the
-wavefunctions} rotates the quantization axis used when the wavefunctions are
-printed, so that a state polarized along an arbitrary direction collapses onto a
-single basis ket.
+The \op{Calculation} panel has three tabs.  \op{Run} holds the single-shot
+calculation; its checkbox \op{Fit effective Hamiltonian with $n$ states} adds
+the fit of Sec.~\ref{sec:heff} to the summary (off by default, since it
+requires \op{jax}), with $n$ the dimension of the local effective model, for
+example $2S+1$.  \op{Sweep} holds the parameter sweeps, with \op{Levels to
+plot} limiting how many eigenvalues are drawn (0 draws all).  Under
+\op{Settings}, \op{Energy tolerance [eV]} sets the degeneracy-grouping window
+\op{tol} discussed above, and the \op{z axis for the wavefunctions} rotates the
+quantization axis used when the wavefunctions are printed, so that a state
+polarized along an arbitrary direction collapses onto a single basis ket.
+
+The status bar at the bottom of the window reports what the interface is doing
+(the progress of a sweep, whether the PDF was created, where the data were
+saved); errors open a dialog.  The window is blocked while a calculation runs.
+
+\subsection{Saving and loading parameters}
+
+\op{File $\to$ Save parameters} (Ctrl+S) writes every field of the interface to
+a JSON file, and \op{File $\to$ Load parameters} (Ctrl+O) fills the interface
+back from one, so that a calculation can be reproduced or shared.  Entries of
+the file that do not match a field of the current version are reported and
+ignored.  Every \op{Initialize and run} also writes the parameters it used to
+\op{parameters.json} next to the results, and \op{Save data} copies that file
+along with them.  \op{Help $\to$ Manual} (F1) opens this document.
 
 \subsection{Tasks}
 
@@ -1001,16 +1053,21 @@ single basis ket.
       explicit wavefunctions of every manifold, and (optionally) the effective
       Hamiltonian.
 \item[Show pdf] opens that summary with the system viewer.
-\item[Plot spectrum / Plot excitations] sweep one parameter over
-      \op{[Initial, Final]} in \op{Steps} points and plot all eigenvalues,
-      referred to their centre of gravity or to the ground state respectively.
+\item[Plot spectrum / Plot excitations] sweep the parameter selected in
+      \op{Parameter to sweep} over \op{[Initial, Final]} in \op{Steps} points
+      and plot all eigenvalues, referred to their centre of gravity or to the
+      ground state respectively.  The entries of the sweep list carry the same
+      names as the fields of the \op{Parameters} panel; the value typed in the
+      swept field is ignored, all the others are kept fixed.  The angles are
+      swept in units of $\pi$.
 \item[Plot degeneracy] plots the ground-state degeneracy along the sweep --- the
       quickest way to locate level crossings and spin-state transitions.
-\item[Plot operator] plots the eigenvalues of a selected operator projected on
-      the ground-state manifold along the sweep.
-\item[Save data] copies the generated \op{*.tex}, \op{*.pdf} and \op{*.OUT}
-      files into \op{./tranci\_data} relative to the directory from which
-      \op{tranci} was launched.
+\item[Plot operator] plots the eigenvalues of the operator selected next to
+      the button, projected on the ground-state manifold along the sweep.
+\item[Save data] copies the generated \op{*.tex}, \op{*.pdf}, \op{*.OUT} and
+      \op{parameters.json} files into \op{./tranci\_data} relative to the
+      directory from which \op{tranci} was launched, and reports the folder.
+      It is also available as \op{File $\to$ Save data} (Ctrl+D).
 \end{description}
 
 \noindent
@@ -1023,6 +1080,7 @@ created there until \op{Save data} is pressed.
 \begin{tabular}{ll}
 \toprule
 \op{spectrum\_ci.tex} / \op{.pdf} & full \LaTeX{} summary of one calculation\\
+\op{parameters.json}    & every field of the interface for that calculation\\
 \op{SPECTRUM.OUT}      & energy (GHz, meV) and $\langle L_\alpha\rangle$, $\langle S_\alpha\rangle$\\
 \op{POPULATION.OUT}    & energy and the ten spin-orbital occupations\\
 \op{EIGENVALUES.OUT}   & swept parameter vs.\ eigenvalues\\

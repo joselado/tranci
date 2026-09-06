@@ -1,20 +1,19 @@
 import os
 import sys
 import glob # to find the generated files
+import json # to save and load the parameters
 import shutil # to copy files in any operative system
 import tempfile # to create the temporal folder in any operative system
 import subprocess # to call pdflatex and the pdf viewer
+from contextlib import contextmanager
 mainpath = os.path.dirname(os.path.realpath(__file__))
 original_path = os.getcwd() # original path where tranci is being executed
 tranciroot = mainpath +"/../" # root to tranci
 sys.path.append(tranciroot+"/src/") # add tranci library
 sys.path.append(mainpath) # add this folder
 import numpy as np
-from tranci.read import read_matrix
-from tranci.atom import CIatom
 from tranci import hamiltonians
-from tranci.hamiltonians import eigenvalues,lowest_states
-import os # for calling the terminal
+from tranci.hamiltonians import lowest_states
 from tranci import write # for writing in latex 
 import matplotlib.pyplot as py
 from tranci.check import check_all # check that the hamiltonian is right
@@ -29,15 +28,26 @@ import matplotlib.cm as cmplt
 import matplotlib
 matplotlib.rcParams.update({'font.size': 22}) # increase font size
 
-import qtwrap # import the library with simple wrappers to qt4
+from PyQt5 import QtCore,QtWidgets
+import qtwrap # import the library with simple wrappers to PyQt5
 get = qtwrap.get  # get the value of a certain variable
 getbox = qtwrap.getbox  # get the value of a certain variable
+status = qtwrap.status # message in the status bar
 window = qtwrap.main() # this is the main interface
 # reject malformed numbers as they are typed, instead of silently zeroing them
-qtwrap.add_numeric_validators(["U","n","soc","D","E","trigonal","O","z4",
-  "x2y2","B","theta_b","phi_b","j","theta_j","phi_j","tol_ene","nwf_heff",
-  "zaxis_x","zaxis_y","zaxis_z","initial_value","final_value","steps",
-  "lineEdit"])
+# (integer fields are QSpinBox widgets and validate themselves)
+qtwrap.add_numeric_validators(["U","soc","D","E","trigonal","O","z4",
+  "x2y2","B","theta_b","phi_b","j","theta_j","phi_j","tol_ene",
+  "zaxis_x","zaxis_y","zaxis_z","initial_value","final_value"])
+
+# progress bar in the status bar, shown only during sweeps
+progress = QtWidgets.QProgressBar()
+progress.setMaximumWidth(200)
+progress.setTextVisible(True)
+window.statusbar.addPermanentWidget(progress)
+progress.hide()
+
+parameters_file = "parameters.json" # written next to the results of each run
 
 ## temporal folder, in the location for temporal files of this system
 temporal_folder = tempfile.mkdtemp(prefix="tranci_tmp_") # portable temporal folder
@@ -49,54 +59,140 @@ def restart_tranci():
   print("Temporal Tranci folder is",tmpfol)
   os.chdir(tmpfol) # go to the temporal folder
 
+
+@contextmanager
+def busy(message):
+  """Block the interface, show a wait cursor and a status message while
+  a calculation runs; everything is restored even if it raises"""
+  status(message)
+  QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+  window.centralwidget.setEnabled(False) # no re-entrant clicks
+  window.menubar.setEnabled(False)
+  qtwrap.app.processEvents()
+  try: yield
+  except Exception:
+    status("Failed: "+message.rstrip(".")) # the error dialog follows
+    raise
+  finally:
+    progress.hide()
+    window.centralwidget.setEnabled(True)
+    window.menubar.setEnabled(True)
+    QtWidgets.QApplication.restoreOverrideCursor()
+    qtwrap.app.processEvents()
+
+
 def save_tranci():
     """Save the generated data in a file"""
     save_folder = os.path.join(original_path,"tranci_data") # name of the folder
-    def tcopy(a):
-        for f in glob.glob(os.path.join(temporal_folder,a)): # loop over matches
-            shutil.copy(f,save_folder) # copy this file
+    patterns = ["*.tex","*.pdf","*.OUT","*.json"]
+    files = []
+    for a in patterns: files += glob.glob(os.path.join(temporal_folder,a))
+    if len(files)==0:
+        qtwrap.show_warning("Nothing to save yet, run a calculation first")
+        return
     os.makedirs(save_folder,exist_ok=True) # create the folder if not there
-    tcopy("*.tex")
-    tcopy("*.pdf")
-    tcopy("*.OUT")
-    print("Saved tranci data in ",save_folder)
+    for f in files: shutil.copy(f,save_folder) # copy this file
+    names = ", ".join(sorted(os.path.basename(f) for f in files))
+    status("Saved %d files in %s"%(len(files),save_folder))
+    qtwrap.show_info("Saved in\n"+save_folder+"\n\n"+names,title="Data saved")
 
+
+def save_parameters():
+    """Write all the fields of the interface to a JSON file chosen by the user"""
+    default = os.path.join(original_path,"tranci_parameters.json")
+    name,_ = QtWidgets.QFileDialog.getSaveFileName(window,"Save parameters",
+              default,"Tranci parameters (*.json)")
+    if not name: return # cancelled
+    if not name.endswith(".json"): name += ".json"
+    write_parameters(name)
+    status("Parameters saved in "+name)
+
+
+def write_parameters(name):
+    """Write all the fields of the interface to a JSON file"""
+    d = qtwrap.get_all_inputs()
+    with open(name,"w") as f: json.dump(d,f,indent=2,sort_keys=True)
+
+
+def load_parameters():
+    """Fill the fields of the interface from a JSON file chosen by the user"""
+    name,_ = QtWidgets.QFileDialog.getOpenFileName(window,"Load parameters",
+              original_path,"Tranci parameters (*.json);;All files (*)")
+    if not name: return # cancelled
+    with open(name) as f: d = json.load(f)
+    if not isinstance(d,dict):
+        raise ValueError(name+" is not a tranci parameters file")
+    unknown = qtwrap.set_all_inputs(d)
+    status("Parameters loaded from "+name)
+    if len(unknown)>0:
+        qtwrap.show_warning("These entries were ignored, they do not match "
+                "any field of this version:\n"+", ".join(unknown))
 
 
 restart_tranci() # restart tranci
 
 
-def show_pdf():
-    name = os.path.abspath("spectrum_ci.pdf") # full path to the pdf
-    if not os.path.isfile(name): # no pdf generated yet
-      print("No pdf found, run the calculation first")
-      return
+def open_file(name):
+    """Open a file with the default application of the system"""
     if sys.platform=="win32": os.startfile(name) # Windows system
     elif sys.platform=="darwin": subprocess.Popen(["open",name]) # Mac system
     else: subprocess.Popen(["xdg-open",name]) # Linux system
 
 
+def show_pdf():
+    name = os.path.abspath("spectrum_ci.pdf") # full path to the pdf
+    if not os.path.isfile(name): # no pdf generated yet
+      qtwrap.show_warning("No PDF summary found yet, run the calculation first")
+      return
+    status("Opening "+name)
+    open_file(name)
+
+
+def show_manual():
+    name = os.path.abspath(os.path.join(tranciroot,"doc","tranci_manual.pdf"))
+    if not os.path.isfile(name):
+      qtwrap.show_warning("The manual was not found at "+name)
+      return
+    open_file(name)
+
 
 def run_pdflatex():
-  """Compile the latex summary, returning True on success"""
+  """Compile the latex summary, returning the error text, or "" on success"""
   r = subprocess.run(["pdflatex","-interaction=nonstopmode","spectrum_ci.tex"],
           stdout=subprocess.PIPE,stderr=subprocess.STDOUT) # capture the output
   if r.returncode!=0: # show why, instead of claiming success later
     out = r.stdout.decode("utf-8","replace") if r.stdout else ""
+    tail = out.splitlines()[-20:]
     print("pdflatex failed (exit %d). Last lines of its output:"%r.returncode)
-    for l in out.splitlines()[-20:]: print("  "+l)
-    return False
-  return True
+    for l in tail: print("  "+l)
+    return "\n".join(tail) or ("pdflatex exited with code %d"%r.returncode)
+  return ""
 
+
+
+# entries of the "Parameter to sweep" combobox: attribute of the parameter
+# object and unit of the axis; the angles are in units of pi (see get_b)
+SWEEP = {
+  "SOC": ("soc","eV"),
+  "U": ("U","multiplier"),
+  "Uniaxial z^2": ("D","eV"),
+  "Shear x^2-y^2": ("E","eV"),
+  "Octahedral x^4+y^4+z^4": ("O","eV"),
+  "Trigonal ((x+y+z)/sqrt(3))^2": ("trigonal","eV"),
+  "Uniaxial' z^4": ("z4","eV"),
+  "Shear' (xy)^2+(yx)^2": ("x2y2","eV"),
+  "B": ("babs","eV"),
+  "Theta_B": ("theta_b","$\\pi$ rad"),
+  "Phi_B": ("phi_b","$\\pi$ rad"),
+  "J": ("jabs","eV"),
+  "Theta_J": ("theta_j","$\\pi$ rad"),
+  "Phi_J": ("phi_j","$\\pi$ rad"),
+}
 
 
 def sweep_label(stype):
-  """Axis label for a swept variable
-
-  The angular entries of the sweep combobox are theta_B/phi_B/theta_J/phi_J,
-  and get_b multiplies them by pi, so they are in units of pi radians."""
-  if stype in ["theta_B","phi_B","theta_J","phi_J"]: return stype+" [$\\pi$ rad]"
-  return stype+" [eV]"
+  """Axis label for a swept variable"""
+  return stype+" ["+SWEEP[stype][1]+"]"
 
 
 def get_b(babs,theta,phi):
@@ -129,50 +225,55 @@ def read_inputs():
   p.phi_j = get("phi_j") # phi for Zeeman
   p.babs = get("B") # absolute Zeeman
   p.jabs = get("j") # absolute Zeeman
-  p.b = get_b(p.babs,p.theta_b,p.phi_b) # get the magnetic field
-  p.j = get_b(p.jabs,p.theta_j,p.phi_j) # get the magnetic field
+  update_fields(p)
   return p
+
+
+def update_fields(p):
+  """Recompute the vector fields from modulus and angles"""
+  p.b = get_b(p.babs,p.theta_b,p.phi_b) # get the magnetic field
+  p.j = get_b(p.jabs,p.theta_j,p.phi_j) # get the exchange field
+
 
 def initialize_one_shot():
   """ Initialize the one shot calculation"""
-  p = read_inputs() # read all the inputs
-#  os.system("cp "+ str(p.n) + "/* ./") # copy input files
-  at = get_atom() # read the basis from file
-  at.wavefunction_z_axis = [get("zaxis_x"),get("zaxis_y"),get("zaxis_z")]
-  m = hamiltonians.build_hamiltonian(at,p) # get the hamiltonian
-  if do_check:  check_all(at) # check the hamiltonian
-  header = hamiltonians.latex_DE(at,p) # string for the hamiltonian
-  ls = lowest_states(m,atom=at) # create the object
-  ls.disentangle_manifolds(at.jz) # disentangle manifold
-#  ls.get_gtensor() # compute gfactor
-#  exit()
-  if get("nwf_heff")>1: nw = int(get("nwf_heff"))
-  else: nw=None
-  write.write_all(ls,header=header,n=nw) # write Latex file
-  if shutil.which("pdflatex") is None: # no latex in this system
-    print("pdflatex not found, only spectrum_ci.tex was written")
-    print("Install a LaTeX distribution (MiKTeX in Windows) for the pdf summary")
-    return
-  ok = run_pdflatex() # compile the latex file
-  ok = run_pdflatex() and ok # do it twice, so that the index is right
-  if not ok or not os.path.isfile("spectrum_ci.pdf"): # do not claim success
-    print("The PDF summary could not be created; spectrum_ci.tex was written")
-    return
-  print("#########################")
-  print("## PDF Summary created ##")
-  print("#########################")
+  with busy("Running the calculation..."):
+    p = read_inputs() # read all the inputs
+    write_parameters(parameters_file) # keep the inputs next to the results
+    at = get_atom() # read the basis from file
+    at.wavefunction_z_axis = [get("zaxis_x"),get("zaxis_y"),get("zaxis_z")]
+    m = hamiltonians.build_hamiltonian(at,p) # get the hamiltonian
+    if do_check:  check_all(at) # check the hamiltonian
+    header = hamiltonians.latex_DE(at,p) # string for the hamiltonian
+    ls = lowest_states(m,atom=at) # create the object
+    ls.disentangle_manifolds(at.jz) # disentangle manifold
+    if qtwrap.is_checked("fit_heff"): nw = int(get("nwf_heff"))
+    else: nw = None
+    if nw is not None: status("Fitting the effective Hamiltonian...")
+    write.write_all(ls,header=header,n=nw) # write Latex file
+    if shutil.which("pdflatex") is None: # no latex in this system
+      status("Calculation done, spectrum_ci.tex written (no pdflatex found)")
+      qtwrap.show_warning("pdflatex was not found, so only spectrum_ci.tex "
+        "was written.\nInstall a LaTeX distribution (MiKTeX on Windows, "
+        "TeX Live or MacTeX otherwise) to get the PDF summary.")
+      return
+    status("Compiling the PDF summary...")
+    err = run_pdflatex() # compile the latex file
+    err2 = run_pdflatex() # do it twice, so that the index is right
+    err = err or err2
+    if err or not os.path.isfile("spectrum_ci.pdf"): # do not claim success
+      status("Calculation done, but the PDF summary could not be created")
+      qtwrap.show_warning("spectrum_ci.tex was written but pdflatex failed. "
+        "Last lines of its output:\n\n"+err)
+      return
+  status("Done: PDF summary created, press Show pdf to open it")
 
 
 
 def get_atom():
   p = read_inputs() # read all the inputs
-#  os.system("cp "+ str(p.n) + "/* ./") # copy input files
-#  os.system("cp "+tranciroot+"cilib/"+ str(p.n) + "/* ./") # copy input files
   from tranci import atom
   at = atom.get_atom(ne=p.n)
-#  at = CIatom() # create the CI object
-#  at.read() # read all the matrices
-#  at.get_basis() # read the basis from file
   hamiltonians.tol = np.max([1e-8,get("tol_ene")]) 
   hamiltonians.ntol = -int(round(np.log10(hamiltonians.tol)))
   return at # return atom
@@ -183,45 +284,52 @@ def get_atom():
 def initialize_sweep():
   """Launch a sweeping calculation"""
   p = read_inputs() # read all the inputs
-#  os.system("cp "+ str(p.n) + "/* ./") # copy input files
   at = get_atom()
+  stype = getbox("sweep_variable") # get the variable
+  if stype not in SWEEP: raise ValueError("Unknown sweep variable "+str(stype))
+  attr = SWEEP[stype][0]
   def fsweep(x):
     """Function to perform the sweep"""
-    stype = getbox("sweep_variable") # get the variable
-    if stype == "U": p.U = x
-    elif stype == "z^2": p.D = x
-    elif stype == "x^2-y^2": p.E = x
-    elif stype == "soc": p.soc = x
-    elif stype == "z^4": p.z4 = x
-    elif stype == "x^2y^2": p.x2y2 = x
-    elif stype == "x^4+y^4+z^4": p.O = x
-    elif stype == "(x+y+z)^2": p.trigonal = x
-    elif stype == "B": p.b = get_b(x,p.theta_b,p.phi_b)
-    elif stype == "theta_B": p.b = get_b(p.babs,x,p.phi_b)
-    elif stype == "phi_B": p.b = get_b(p.babs,p.theta_b,x)
-    elif stype == "J": p.j = get_b(x,p.theta_j,p.phi_j)
-    elif stype == "theta_J": p.j = get_b(p.jabs,x,p.phi_j)
-    elif stype == "phi_J": p.j = get_b(p.jabs,p.theta_j,x)
-    else: raise # raise error
+    setattr(p,attr,x) # set the swept parameter
+    update_fields(p) # the vector fields depend on modulus and angles
     m = hamiltonians.build_hamiltonian(at,p) # get the hamiltonian
     ls = lowest_states(m,atom=at) # perform the calculation 
     return ls # return the object
   return fsweep # return function
 
+
+def run_sweep(fsweep,xs):
+  """Evaluate fsweep on every point, reporting progress in the status bar"""
+  progress.setRange(0,len(xs))
+  progress.setValue(0)
+  progress.show()
+  out = []
+  for i,x in enumerate(xs):
+    out.append(fsweep(x))
+    progress.setValue(i+1)
+    status("Sweep: point %d of %d"%(i+1,len(xs)))
+  return out
+
+
+def sweep_states():
+  """Common start of every sweep task: the grid and the states on it"""
+  fsweep = initialize_sweep() # get the generator function
+  xs = get_sweep_parameters() # get the array
+  return xs,run_sweep(fsweep,xs)
+
+
 def plot_eigenvalues(write=True,center=True):
   """Plots the excited states"""
   ###############################
   ###############################
-  fsweep = initialize_sweep() # get the generator function
-  xs = get_sweep_parameters() # get the array
-  gst = [fsweep(ix) for ix in xs]  # create the list of objects
-#  ys = [g.get_excitations() for g in gst] # get the energies of the excitations
+  with busy("Sweeping..."):
+    xs,gst = sweep_states()
   ys = [g.evals_full for g in gst] # get all the eigenvalues
   fig = py.figure() # create figure
   fig.subplots_adjust(.2,.15) # adjust the subplots
   ys = np.array(ys).transpose() # row is same eigenvector evolving
   # number of energies to plot
-  nenergies = int(get("lineEdit")) # number of energies to plot
+  nenergies = int(get("nplot")) # number of energies to plot
   if 0 < nenergies < len(ys): ys = np.array([ys[i] for i in range(nenergies)])
   else: pass
 
@@ -246,6 +354,7 @@ def plot_eigenvalues(write=True,center=True):
   py.xlabel(sweep_label(stype))  # label for the x axis
   fig.set_facecolor("white")
   py.tight_layout()
+  status("Sweep done, data written to EIGENVALUES.OUT")
   py.show()
 
 
@@ -268,9 +377,8 @@ def plot_degeneracy():
   """Plots the degeneracy of the ground state"""
   ###############################
   ###############################
-  xs = get_sweep_parameters() # get the array
-  fsweep = initialize_sweep() # get the generator function
-  gst = [fsweep(ix) for ix in xs]  # create the list of objects
+  with busy("Sweeping..."):
+    xs,gst = sweep_states()
   T = hamiltonians.tol # tolerancy
   ds = [g.get_gs_multiplicity(tol=T) for g in gst] # get degeneracies
   fig = py.figure() # create figure
@@ -284,60 +392,37 @@ def plot_degeneracy():
   py.xlabel(sweep_label(stype))  # label for the x axis
   fig.set_facecolor("white")
   py.tight_layout()
+  status("Sweep done, data written to DEGENERACY.OUT")
   py.show()
 
 
 
+def get_operator(at,oname):
+  """Many-body operator selected in the Operator combobox"""
+  ops = {
+    "Sx": at.sx, "Sy": at.sy, "Sz": at.sz,
+    "Lx": at.lx, "Ly": at.ly, "Lz": at.lz,
+    "Jx": at.jx, "Jy": at.jy, "Jz": at.jz,
+    "L2": at.l2, "S2": at.s2, "J2": at.j2, "LS": at.ls,
+    "x2": at.x2, "y2": at.y2, "z2": at.z2,
+    "x4+y4+z4": at.x4+at.y4+at.z4,
+    "S_(111)": (at.sz + at.sx + at.sy)/np.sqrt(3),
+    "L_(111)": (at.lz + at.lx + at.ly)/np.sqrt(3),
+  }
+  if oname not in ops: raise ValueError("Unknown operator "+str(oname))
+  return ops[oname]
 
 
 def plot_operator():
   """Plots the eigenvalues of a certain operator in the GS"""
   ###############################
   ###############################
-  fsweep = initialize_sweep() # get the generator function
-  xs = get_sweep_parameters() # get the array
-  gst = [fsweep(ix) for ix in xs]  # create the list of objects
-  at = get_atom() # get the atom object
-
-  ########################
-  ########################
-  ########################
-  oname = getbox("operator_name")
-  if (oname=="Sx"): op = at.sx     # get this operator 
-  elif (oname=="Sy"): op = at.sy   # get this operator 
-  elif (oname=="Sz"): op = at.sz   # get this operator 
-  elif (oname=="S_(111)"): op = (at.sz + at.sx + at.sy)/np.sqrt(3)
-  elif (oname=="L_(111)"): op = (at.lz + at.lx + at.ly)/np.sqrt(3)
-  elif (oname=="Jx"): op = at.jx   # get this operator
-  elif (oname=="Jy"): op = at.jy   # get this operator
-  elif (oname=="Jz"): op = at.jz   # get this operator
-  elif (oname=="Lx"): op = at.lx   # get this operator 
-  elif (oname=="Ly"): op = at.ly   # get this operator 
-  elif (oname=="Lz"): op = at.lz   # get this operator 
-  elif (oname=="L2"): op = at.l2   # get this operator 
-  elif (oname=="S2"): op = at.s2   # get this operator 
-  elif (oname=="J2"): op = at.j2   # get this operator 
-  elif (oname=="x2"): op = at.x2   # get this operator 
-  elif (oname=="y2"): op = at.y2   # get this operator 
-  elif (oname=="z2"): op = at.z2   # get this operator 
-  elif (oname=="LS"): op = at.ls   # get this operator 
-  elif (oname=="up m=-2"): op = at.um2   # get this operator 
-  elif (oname=="up m=-1"): op = at.um1   # get this operator 
-  elif (oname=="up m=0"): op = at.u0   # get this operator 
-  elif (oname=="up m=+1"): op = at.up1   # get this operator 
-  elif (oname=="up m=+2"): op = at.up2   # get this operator 
-  elif (oname=="dn m=+2"): op = at.dm2   # get this operator 
-  elif (oname=="dn m=-1"): op = at.dm1   # get this operator 
-  elif (oname=="dn m=0"): op = at.d0   # get this operator 
-  elif (oname=="dn m=+1"): op = at.dp1   # get this operator 
-  elif (oname=="dn m=+2"): op = at.dp2   # get this operator 
-  elif (oname=="x4y4z4"): op = at.x4+at.y4+at.z4   # get this operator 
-  else: print(oname) ; raise
-  ########################
-  ########################
-  ########################
-
-  evals = [g.get_gs_projected_eigenvalues(op) for g in gst] # get op eigen 
+  with busy("Sweeping..."):
+    xs,gst = sweep_states()
+    at = get_atom() # get the atom object
+    oname = getbox("operator_name")
+    op = get_operator(at,oname)
+    evals = [g.get_gs_projected_eigenvalues(op) for g in gst] # get op eigen 
   fig = py.figure() # create figure
   fig.subplots_adjust(.2,.15) # adjust the subplots
   #############
@@ -349,23 +434,13 @@ def plot_operator():
     for (ix,iy) in zip(xplot,y): fo.write(str(ix)+" "+str(iy)+"\n")
   fo.close() # close file
   py.xlim([min(xs),max(xs)]) # 
-#  py.ylim([min(evals),max(evals)]) # 
   py.ylabel("$\\langle "+oname+"\\rangle$")  # label for the y axis
   stype = getbox("sweep_variable")
   py.xlabel(sweep_label(stype))  # label for the x axis
   fig.set_facecolor("white")
   py.tight_layout()
+  status("Sweep done, data written to OPERATOR_VALUES.OUT")
   py.show() # show graph
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -374,18 +449,27 @@ from qtwrap import set_logo
 tranci_logo = tranciroot+"/logos/orbitals.png"
 set_logo("logo",tranci_logo)
 
+# second-quantized formula of every parameter, rendered with mathtext
+import formulas
+formulas.add_formulas(window)
 
-# create signals
+
+# create signals: buttons and menu actions
 signals = dict()
-#signals["on_window_destroy"] = gtk.main_quit  # close the window
 signals["initialize_one_shot"] = initialize_one_shot  # initialize and run
 signals["plot_spectrum"] = plot_spectrum  # initialize and run
 signals["plot_excitations"] = plot_excitations  # initialize and run
 signals["plot_degeneracy"] = plot_degeneracy  # initialize and run
 signals["plot_operator"] = plot_operator  # initialize and run
 signals["show_pdf"] = show_pdf  # show pdf with the results
-signals["save_tranci"] = save_tranci  # show pdf with the results
+signals["save_tranci"] = save_tranci  # copy the results to ./tranci_data
+signals["menu_show_pdf"] = show_pdf
+signals["menu_save_tranci"] = save_tranci
+signals["load_parameters"] = load_parameters
+signals["save_parameters"] = save_parameters
+signals["show_manual"] = show_manual
+signals["quit_tranci"] = window.close
 
 window.connect_clicks(signals) 
+status("Ready. Set the parameters and press Initialize and run.")
 window.run()
-

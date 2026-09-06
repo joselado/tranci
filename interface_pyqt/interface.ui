@@ -6,72 +6,581 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1187</width>
-    <height>547</height>
+    <width>1325</width>
+    <height>776</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Tranci</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout_21">
-    <item row="0" column="0">
-     <widget class="QGroupBox" name="groupBox_3">
-      <property name="title">
-       <string>TranCI</string>
+   <layout class="QHBoxLayout" name="mainLayout">
+    <item>
+     <widget class="QLabel" name="logo">
+      <property name="minimumSize">
+       <size>
+        <width>130</width>
+        <height>299</height>
+       </size>
       </property>
-      <layout class="QGridLayout" name="gridLayout_20">
-       <item row="0" column="0">
-        <widget class="QLabel" name="logo">
-         <property name="minimumSize">
+      <property name="maximumSize">
+       <size>
+        <width>130</width>
+        <height>299</height>
+       </size>
+      </property>
+      <property name="toolTip">
+       <string>TranCI: configuration interaction for a d shell</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBox">
+      <property name="title">
+       <string>Parameters</string>
+      </property>
+      <layout class="QVBoxLayout" name="parametersLayout">
+       <property name="spacing">
+        <number>4</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="groupAtom">
+         <property name="title">
+          <string>Atom</string>
+         </property>
+         <layout class="QGridLayout" name="gridAtom">
+          <property name="verticalSpacing">
+           <number>3</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_15">
+            <property name="text">
+             <string># of electrons</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QSpinBox" name="n">
+            <property name="toolTip">
+             <string>Number of electrons in the d shell (1 to 9)</string>
+            </property>
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>9</number>
+            </property>
+            <property name="value">
+             <number>2</number>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QLabel" name="f_n">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>U [multiplier]</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="U">
+            <property name="toolTip">
+             <string>Dimensionless multiplier of the fixed Coulomb tensor (Racah B = 52.9*U meV, C = 210*U meV). It is NOT an energy in eV.</string>
+            </property>
+            <property name="text">
+             <string>4.0</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QLabel" name="f_U">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>SOC [eV]</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="soc">
+            <property name="toolTip">
+             <string>One-electron spin-orbit coupling constant lambda, multiplying L.S. Positive for every filling; Hund's third rule follows from the diagonalization.</string>
+            </property>
+            <property name="text">
+             <string>0.05</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="2">
+           <widget class="QLabel" name="f_soc">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupCrystal">
+         <property name="title">
+          <string>Crystal field [eV]</string>
+         </property>
+         <layout class="QGridLayout" name="gridCrystal">
+          <property name="verticalSpacing">
+           <number>3</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Uniaxial z^2</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="D">
+            <property name="toolTip">
+             <string>Tetragonal (uniaxial) crystal field D multiplying the z^2 operator. D&gt;0 stabilizes the d_z2 orbital.</string>
+            </property>
+            <property name="text">
+             <string>0.0</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QLabel" name="f_D">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>Shear x^2-y^2</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="E">
+            <property name="toolTip">
+             <string>Rhombic (in-plane shear) crystal field E multiplying the x^2-y^2 operator</string>
+            </property>
+            <property name="text">
+             <string>0.0</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QLabel" name="f_E">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Octahedral x^4+y^4+z^4</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="O">
+            <property name="toolTip">
+             <string>Cubic (octahedral) crystal field O multiplying x^4+y^4+z^4; the t2g-eg splitting is 10Dq = 6*O</string>
+            </property>
+            <property name="text">
+             <string>0.3</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="2">
+           <widget class="QLabel" name="f_O">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>Trigonal ((x+y+z)/sqrt(3))^2</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="trigonal">
+            <property name="toolTip">
+             <string>Trigonal crystal field: the z^2 operator rotated to the (1,1,1) direction</string>
+            </property>
+            <property name="text">
+             <string>0.05</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="2">
+           <widget class="QLabel" name="f_trigonal">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_7">
+            <property name="text">
+             <string>Uniaxial' z^4</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLineEdit" name="z4">
+            <property name="toolTip">
+             <string>Higher-order axial crystal field multiplying the z^4 operator</string>
+            </property>
+            <property name="text">
+             <string>0.0</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="2">
+           <widget class="QLabel" name="f_z4">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_11">
+            <property name="text">
+             <string>Shear' (xy)^2+(yx)^2</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLineEdit" name="x2y2">
+            <property name="toolTip">
+             <string>Higher-order in-plane crystal field multiplying the x^2y^2 operator</string>
+            </property>
+            <property name="text">
+             <string>0.0</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="2">
+           <widget class="QLabel" name="f_x2y2">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupFields">
+         <property name="title">
+          <string>Zeeman and exchange fields</string>
+         </property>
+         <layout class="QGridLayout" name="gridFields">
+          <property name="verticalSpacing">
+           <number>3</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_8">
+            <property name="text">
+             <string>B [eV]</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1" colspan="3">
+           <widget class="QLineEdit" name="B">
+            <property name="toolTip">
+             <string>Absolute value of the Zeeman field, coupling to L+2S (in eV, i.e. mu_B*B)</string>
+            </property>
+            <property name="text">
+             <string>0.0</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="4">
+           <widget class="QLabel" name="f_B">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_9">
+            <property name="text">
+             <string>Theta_B [pi]</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="theta_b">
+            <property name="toolTip">
+             <string>Polar angle of the Zeeman field in units of pi: 0 is along z, 0.5 is in the xy plane</string>
+            </property>
+            <property name="text">
+             <string>0.0</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QLabel" name="label_10">
+            <property name="text">
+             <string>Phi_B [pi]</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3">
+           <widget class="QLineEdit" name="phi_b">
+            <property name="toolTip">
+             <string>Azimuthal angle of the Zeeman field in units of pi: theta=0.5, phi=0 is along x, phi=0.5 along y</string>
+            </property>
+            <property name="text">
+             <string>0.0</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="4">
+           <widget class="QLabel" name="f_dir_b">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_12">
+            <property name="text">
+             <string>J [eV]</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1" colspan="3">
+           <widget class="QLineEdit" name="j">
+            <property name="toolTip">
+             <string>Absolute value of an exchange field that couples only to the spin S</string>
+            </property>
+            <property name="text">
+             <string>0.0</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="4">
+           <widget class="QLabel" name="f_j">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_13">
+            <property name="text">
+             <string>Theta_J [pi]</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="theta_j">
+            <property name="toolTip">
+             <string>Polar angle of the exchange field in units of pi: 0 is along z, 0.5 is in the xy plane</string>
+            </property>
+            <property name="text">
+             <string>0.0</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="2">
+           <widget class="QLabel" name="label_14">
+            <property name="text">
+             <string>Phi_J [pi]</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="3">
+           <widget class="QLineEdit" name="phi_j">
+            <property name="toolTip">
+             <string>Azimuthal angle of the exchange field in units of pi: theta=0.5, phi=0 is along x, phi=0.5 along y</string>
+            </property>
+            <property name="text">
+             <string>0.0</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="4">
+           <widget class="QLabel" name="f_dir_j">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="parametersSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
           <size>
-           <width>200</width>
-           <height>370</height>
+           <width>20</width>
+           <height>0</height>
           </size>
          </property>
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
+        </spacer>
        </item>
       </layout>
      </widget>
     </item>
-    <item row="0" column="1">
+    <item>
      <widget class="QGroupBox" name="groupBox_2">
       <property name="title">
        <string>Calculation</string>
       </property>
-      <layout class="QGridLayout" name="gridLayout_17">
-       <item row="0" column="0">
+      <layout class="QVBoxLayout" name="calculationLayout">
+       <item>
+        <widget class="QLabel" name="f_H">
+         <property name="toolTip">
+          <string>Hamiltonian built by the interface. Each field below multiplies one of its terms; hover over a formula to see its TeX source.</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QTabWidget" name="tabWidget_3">
          <property name="currentIndex">
           <number>0</number>
          </property>
          <widget class="QWidget" name="tab_7">
           <attribute name="title">
-           <string>Single shot</string>
+           <string>Run</string>
           </attribute>
-          <layout class="QGridLayout" name="gridLayout_16">
-           <item row="0" column="0">
+          <layout class="QVBoxLayout" name="runLayout">
+           <item>
             <widget class="QPushButton" name="initialize_one_shot">
              <property name="toolTip">
-              <string>Prform a single shot calculation</string>
+              <string>Diagonalize the Hamiltonian with the current parameters and write the LaTeX/PDF summary</string>
              </property>
              <property name="text">
               <string>Initialize and run</string>
              </property>
             </widget>
            </item>
-           <item row="1" column="0">
-            <widget class="QPushButton" name="show_pdf">
-             <property name="toolTip">
-              <string>Show a pdf with the summary of the results</string>
+           <item>
+            <layout class="QHBoxLayout" name="heffLayout">
+             <item>
+              <widget class="QCheckBox" name="fit_heff">
+               <property name="toolTip">
+                <string>Fit the lowest states to an effective spin/orbital Hamiltonian and add it to the summary. Requires the jax package.</string>
+               </property>
+               <property name="text">
+                <string>Fit effective Hamiltonian with</string>
+               </property>
+               <property name="checked">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="nwf_heff">
+               <property name="toolTip">
+                <string>Number of low-energy states in the effective Hamiltonian, i.e. the dimension of the local effective model (for example 2S+1)</string>
+               </property>
+               <property name="minimum">
+                <number>2</number>
+               </property>
+               <property name="maximum">
+                <number>252</number>
+               </property>
+               <property name="value">
+                <number>9</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_27">
+               <property name="text">
+                <string>states</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="heffSpacer">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>0</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="outputLayout">
+             <item>
+              <widget class="QPushButton" name="show_pdf">
+               <property name="toolTip">
+                <string>Open the PDF summary of the last calculation with the system viewer</string>
+               </property>
+               <property name="text">
+                <string>Show pdf</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="save_tranci">
+               <property name="toolTip">
+                <string>Copy the summary (tex, pdf), the .OUT data files and the parameters used into ./tranci_data, relative to where tranci was launched</string>
+               </property>
+               <property name="text">
+                <string>Save data</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <spacer name="runSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
              </property>
-             <property name="text">
-              <string>Show pdf</string>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>0</height>
+              </size>
              </property>
-            </widget>
+            </spacer>
            </item>
           </layout>
          </widget>
@@ -79,23 +588,232 @@
           <attribute name="title">
            <string>Sweep</string>
           </attribute>
-          <layout class="QGridLayout" name="gridLayout_15">
-           <item row="1" column="0" colspan="2">
-            <layout class="QGridLayout" name="gridLayout_13">
+          <layout class="QVBoxLayout" name="sweepLayout">
+           <item>
+            <layout class="QGridLayout" name="gridSweep">
              <item row="0" column="0">
+              <widget class="QLabel" name="label_16">
+               <property name="text">
+                <string>Parameter to sweep</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1" colspan="5">
+              <widget class="QComboBox" name="sweep_variable">
+               <property name="toolTip">
+                <string>Parameter varied along the sweep; the value of its field in the Parameters panel is ignored, all the others are kept fixed</string>
+               </property>
+               <item>
+                <property name="text">
+                 <string>SOC</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>U</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Uniaxial z^2</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Shear x^2-y^2</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Octahedral x^4+y^4+z^4</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Trigonal ((x+y+z)/sqrt(3))^2</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Uniaxial' z^4</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Shear' (xy)^2+(yx)^2</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>B</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Theta_B</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Phi_B</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>J</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Theta_J</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Phi_J</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_17">
+               <property name="text">
+                <string>Initial</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="initial_value">
+               <property name="toolTip">
+                <string>Initial value of the swept parameter</string>
+               </property>
+               <property name="text">
+                <string>0.0</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="2">
+              <widget class="QLabel" name="label_18">
+               <property name="text">
+                <string>Final</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="3">
+              <widget class="QLineEdit" name="final_value">
+               <property name="toolTip">
+                <string>Final value of the swept parameter</string>
+               </property>
+               <property name="text">
+                <string>1.0</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="4">
+              <widget class="QLabel" name="label_19">
+               <property name="text">
+                <string>Steps</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="5">
+              <widget class="QSpinBox" name="steps">
+               <property name="toolTip">
+                <string>Number of points in the sweep</string>
+               </property>
+               <property name="minimum">
+                <number>2</number>
+               </property>
+               <property name="maximum">
+                <number>100000</number>
+               </property>
+               <property name="value">
+                <number>40</number>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_22">
+               <property name="text">
+                <string>Levels to plot (0 = all)</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1" colspan="5">
+              <widget class="QSpinBox" name="nplot">
+               <property name="toolTip">
+                <string>How many of the lowest eigenvalues are drawn by Plot spectrum and Plot excitations; 0 draws all of them</string>
+               </property>
+               <property name="minimum">
+                <number>0</number>
+               </property>
+               <property name="maximum">
+                <number>100000</number>
+               </property>
+               <property name="value">
+                <number>40</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="sweepButtons">
+             <item>
+              <widget class="QPushButton" name="plot_spectrum">
+               <property name="toolTip">
+                <string>Plot all eigenvalues along the sweep, referred to their centre of gravity</string>
+               </property>
+               <property name="text">
+                <string>Plot spectrum</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="plot_excitations">
+               <property name="toolTip">
+                <string>Plot all eigenvalues along the sweep, referred to the ground state</string>
+               </property>
+               <property name="text">
+                <string>Plot excitations</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="plot_degeneracy">
+               <property name="toolTip">
+                <string>Plot the degeneracy of the ground state along the sweep</string>
+               </property>
+               <property name="text">
+                <string>Plot degeneracy</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="operatorLayout">
+             <item>
+              <widget class="QPushButton" name="plot_operator">
+               <property name="toolTip">
+                <string>Plot the eigenvalues of the selected operator projected on the ground-state manifold along the sweep</string>
+               </property>
+               <property name="text">
+                <string>Plot operator</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QLabel" name="label_24">
                <property name="text">
                 <string>Operator</string>
                </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
               </widget>
              </item>
-             <item row="0" column="1">
+             <item>
               <widget class="QComboBox" name="operator_name">
                <property name="toolTip">
-                <string>Operator used to compute expectation values</string>
+                <string>Operator projected on the ground-state manifold by Plot operator</string>
                </property>
                <item>
                 <property name="text">
@@ -179,6 +897,11 @@
                </item>
                <item>
                 <property name="text">
+                 <string>x4+y4+z4</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
                  <string>S_(111)</string>
                 </property>
                </item>
@@ -191,620 +914,99 @@
              </item>
             </layout>
            </item>
-           <item row="2" column="0">
-            <layout class="QGridLayout" name="gridLayout_11">
-             <item row="1" column="0">
-              <widget class="QPushButton" name="plot_spectrum">
-               <property name="toolTip">
-                <string>Plot the spectrum of the many body system</string>
-               </property>
-               <property name="text">
-                <string>Plot spectrum</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="0">
-              <widget class="QPushButton" name="plot_excitations">
-               <property name="toolTip">
-                <string>Plot the excitations with respect to the ground state</string>
-               </property>
-               <property name="text">
-                <string>Plot excitations</string>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="0">
-              <widget class="QPushButton" name="plot_degeneracy">
-               <property name="toolTip">
-                <string>Plot the degeneracy of the ground state</string>
-               </property>
-               <property name="text">
-                <string>Plot degeneracy</string>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="0">
-              <widget class="QPushButton" name="plot_operator">
-               <property name="toolTip">
-                <string>Plot the expectation value of a certain operator on the ground state manifold</string>
-               </property>
-               <property name="text">
-                <string>Plot operator</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_20">
-               <property name="text">
-                <string>Tasks</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignBottom|Qt::AlignHCenter</set>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item row="2" column="1">
-            <layout class="QGridLayout" name="gridLayout_10">
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_17">
-               <property name="text">
-                <string>Initial</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QLineEdit" name="initial_value">
-               <property name="toolTip">
-                <string>Initial value of the sweep</string>
-               </property>
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="1">
-              <widget class="QLineEdit" name="final_value">
-               <property name="toolTip">
-                <string>Final value of the sweep</string>
-               </property>
-               <property name="text">
-                <string>1.0</string>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="1">
-              <widget class="QLineEdit" name="steps">
-               <property name="toolTip">
-                <string>Number of steps in the sweep</string>
-               </property>
-               <property name="text">
-                <string>40</string>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="0">
-              <widget class="QLabel" name="label_18">
-               <property name="text">
-                <string>Final</string>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="0">
-              <widget class="QLabel" name="label_19">
-               <property name="text">
-                <string>Steps</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0" colspan="2">
-              <widget class="QLabel" name="label_21">
-               <property name="text">
-                <string>Values to sweep</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignBottom|Qt::AlignHCenter</set>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item row="0" column="0" colspan="2">
-            <layout class="QGridLayout" name="gridLayout_9">
-             <item row="0" column="0" rowspan="2">
-              <widget class="QLabel" name="label_16">
-               <property name="text">
-                <string>Parameter to sweep</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1" rowspan="2">
-              <widget class="QComboBox" name="sweep_variable">
-               <item>
-                <property name="text">
-                 <string>soc</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>z^2</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>z^4</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>x^2-y^2</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>x^2y^2</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>x^4+y^4+z^4</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>(x+y+z)^2</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>B</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>theta_B</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>phi_B</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>J</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>theta_J</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>phi_J</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>U</string>
-                </property>
-               </item>
-              </widget>
-             </item>
-            </layout>
+           <item>
+            <spacer name="sweepSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>0</height>
+              </size>
+             </property>
+            </spacer>
            </item>
           </layout>
          </widget>
          <widget class="QWidget" name="tab_6">
           <attribute name="title">
-           <string>Control</string>
+           <string>Settings</string>
           </attribute>
-          <layout class="QGridLayout" name="gridLayout_14">
-           <item row="0" column="0">
-            <layout class="QGridLayout" name="gridLayout_12">
-             <item row="0" column="1">
-              <widget class="QLineEdit" name="lineEdit">
+          <layout class="QVBoxLayout" name="settingsLayout">
+           <item>
+            <layout class="QGridLayout" name="gridSettings">
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_23">
                <property name="text">
-                <string>40</string>
+                <string>Energy tolerance [eV]</string>
                </property>
               </widget>
              </item>
-             <item row="1" column="1">
+             <item row="0" column="1" colspan="3">
               <widget class="QLineEdit" name="tol_ene">
+               <property name="toolTip">
+                <string>Two states closer than this energy are grouped in the same degenerate manifold</string>
+               </property>
                <property name="text">
                 <string>0.001</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_22">
-               <property name="text">
-                <string>Maximum number of eigenfunctions</string>
-               </property>
-              </widget>
-             </item>
              <item row="1" column="0">
-              <widget class="QLabel" name="label_23">
-               <property name="text">
-                <string>Energy tolerancy [eV]</string>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="0" colspan="2">
-              <widget class="QPushButton" name="save_tranci">
-               <property name="toolTip">
-                <string>Save data in the current folder</string>
-               </property>
-               <property name="text">
-                <string>Save data</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_26">
-               <property name="text">
-                <string># of WF for effective Hamiltonian</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QLineEdit" name="nwf_heff">
-               <property name="toolTip">
-                <string># of low energy wavefunctions in the effective Hamiltonian. This would be the dimensional of the local effective model (for example, 2S+1)</string>
-               </property>
-               <property name="text">
-                <string>9</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </widget>
-         <widget class="QWidget" name="tab_5">
-          <attribute name="title">
-           <string>Advanced</string>
-          </attribute>
-          <layout class="QGridLayout" name="gridLayout_22">
-           <item row="0" column="0">
-            <layout class="QGridLayout" name="gridLayout_19">
-             <item row="0" column="0" colspan="3">
               <widget class="QLabel" name="label_25">
                <property name="toolTip">
-                <string>axis for the wavefunctions, controls what is the direction with respect to the initial axis to represent the harmonic and spin-part of the wavefunction</string>
+                <string>Quantization axis used when the wavefunctions are printed in the summary, so that a state polarized along an arbitrary direction collapses onto a single basis ket</string>
                </property>
                <property name="text">
-                <string>z axis for the wavefunctions</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
+                <string>z axis for the wavefunctions (x, y, z)</string>
                </property>
               </widget>
              </item>
              <item row="1" column="1">
-              <widget class="QLineEdit" name="zaxis_y">
+              <widget class="QLineEdit" name="zaxis_x">
+               <property name="toolTip">
+                <string>x component of the quantization axis for the printed wavefunctions</string>
+               </property>
                <property name="text">
                 <string>0</string>
                </property>
               </widget>
              </item>
              <item row="1" column="2">
+              <widget class="QLineEdit" name="zaxis_y">
+               <property name="toolTip">
+                <string>y component of the quantization axis for the printed wavefunctions</string>
+               </property>
+               <property name="text">
+                <string>0</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="3">
               <widget class="QLineEdit" name="zaxis_z">
+               <property name="toolTip">
+                <string>z component of the quantization axis for the printed wavefunctions</string>
+               </property>
                <property name="text">
                 <string>1</string>
                </property>
               </widget>
              </item>
-             <item row="1" column="0">
-              <widget class="QLineEdit" name="zaxis_x">
-               <property name="text">
-                <string>0</string>
-               </property>
-              </widget>
-             </item>
             </layout>
            </item>
-          </layout>
-         </widget>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item row="0" column="2">
-     <widget class="QGroupBox" name="groupBox">
-      <property name="title">
-       <string>Parameters</string>
-      </property>
-      <layout class="QGridLayout" name="gridLayout_18">
-       <item row="0" column="0">
-        <widget class="QTabWidget" name="tabWidget">
-         <property name="currentIndex">
-          <number>0</number>
-         </property>
-         <widget class="QWidget" name="tab">
-          <attribute name="title">
-           <string>General</string>
-          </attribute>
-          <layout class="QGridLayout" name="gridLayout_8">
-           <item row="0" column="0">
-            <layout class="QGridLayout" name="gridLayout_2">
-             <item row="1" column="0">
-              <widget class="QLabel" name="label">
-               <property name="text">
-                <string>U [multiplier]</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QLineEdit" name="U">
-               <property name="toolTip">
-                <string>Dimensionless multiplier of the fixed Coulomb tensor (Racah B = 52.9*U meV, C = 210*U meV). It is NOT an energy in eV.</string>
-               </property>
-               <property name="text">
-                <string>4.0</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_15">
-               <property name="text">
-                <string># of electrons</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QLineEdit" name="n">
-               <property name="toolTip">
-                <string>Number of electrons in the d shell</string>
-               </property>
-               <property name="text">
-                <string>2</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </widget>
-         <widget class="QWidget" name="tab_2">
-          <attribute name="title">
-           <string>Spin-orbit</string>
-          </attribute>
-          <layout class="QGridLayout" name="gridLayout_7">
-           <item row="0" column="0">
-            <layout class="QGridLayout" name="gridLayout_3">
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_2">
-               <property name="text">
-                <string>SOC [eV]</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QLineEdit" name="soc">
-               <property name="toolTip">
-                <string>Value of the spin-orbit coupling</string>
-               </property>
-               <property name="text">
-                <string>0.05</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </widget>
-         <widget class="QWidget" name="tab_3">
-          <attribute name="title">
-           <string>Crystal field</string>
-          </attribute>
-          <layout class="QGridLayout" name="gridLayout_6">
-           <item row="0" column="0">
-            <layout class="QGridLayout" name="gridLayout_5">
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_3">
-               <property name="text">
-                <string>Uniaxial z^2 [eV]</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QLineEdit" name="D">
-               <property name="toolTip">
-                <string>Uniaxial crystal field</string>
-               </property>
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QLineEdit" name="E">
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_4">
-               <property name="text">
-                <string>Shear x^2-y^2 [eV]</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_5">
-               <property name="text">
-                <string>Octahedral x^4+y^4+z^4</string>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="0">
-              <widget class="QLabel" name="label_7">
-               <property name="text">
-                <string>Uniaxial' z^4 [eV]</string>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="0">
-              <widget class="QLabel" name="label_6">
-               <property name="text">
-                <string>Trigonal ((x+y+z)/sqrt(3))^2</string>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="1">
-              <widget class="QLineEdit" name="trigonal">
-               <property name="toolTip">
-                <string>Trigonal crystal field</string>
-               </property>
-               <property name="text">
-                <string>0.05</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QLineEdit" name="O">
-               <property name="toolTip">
-                <string>Octahedral crystal field</string>
-               </property>
-               <property name="text">
-                <string>0.3</string>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="1">
-              <widget class="QLineEdit" name="z4">
-               <property name="toolTip">
-                <string>Uniaxial crystal field</string>
-               </property>
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-             <item row="5" column="0">
-              <widget class="QLabel" name="label_11">
-               <property name="text">
-                <string>Shear' (xy)^2+(yx)^2</string>
-               </property>
-              </widget>
-             </item>
-             <item row="5" column="1">
-              <widget class="QLineEdit" name="x2y2">
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </widget>
-         <widget class="QWidget" name="tab_4">
-          <attribute name="title">
-           <string>Magnetic field</string>
-          </attribute>
-          <layout class="QGridLayout" name="gridLayout">
-           <item row="0" column="0">
-            <layout class="QGridLayout" name="gridLayout_4">
-             <item row="0" column="2">
-              <widget class="QLabel" name="label_12">
-               <property name="text">
-                <string>J [eV] </string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_8">
-               <property name="text">
-                <string>B [eV]</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QLineEdit" name="B">
-               <property name="toolTip">
-                <string>Absolute value of the magnetic field</string>
-               </property>
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QLineEdit" name="theta_b">
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_10">
-               <property name="text">
-                <string>Phi_B [pi]</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_9">
-               <property name="text">
-                <string>Theta_B [pi]</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QLineEdit" name="phi_b">
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="3">
-              <widget class="QLineEdit" name="j">
-               <property name="toolTip">
-                <string>Absolute value of an exchange field that couples only to the spin sector</string>
-               </property>
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="2">
-              <widget class="QLabel" name="label_13">
-               <property name="text">
-                <string>Theta_J [pi]</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="2">
-              <widget class="QLabel" name="label_14">
-               <property name="text">
-                <string>Phi_J [pi]</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="3">
-              <widget class="QLineEdit" name="theta_j">
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="3">
-              <widget class="QLineEdit" name="phi_j">
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
+           <item>
+            <spacer name="settingsSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>0</height>
+              </size>
+             </property>
+            </spacer>
            </item>
           </layout>
          </widget>
@@ -820,12 +1022,92 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1187</width>
-     <height>20</height>
+     <width>1325</width>
+     <height>22</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>&amp;File</string>
+    </property>
+    <addaction name="load_parameters"/>
+    <addaction name="save_parameters"/>
+    <addaction name="separator"/>
+    <addaction name="menu_show_pdf"/>
+    <addaction name="menu_save_tranci"/>
+    <addaction name="separator"/>
+    <addaction name="quit_tranci"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>&amp;Help</string>
+    </property>
+    <addaction name="show_manual"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="load_parameters">
+   <property name="text">
+    <string>&amp;Load parameters...</string>
+   </property>
+   <property name="toolTip">
+    <string>Fill all the fields from a parameters file saved by tranci</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="save_parameters">
+   <property name="text">
+    <string>&amp;Save parameters...</string>
+   </property>
+   <property name="toolTip">
+    <string>Write all the fields to a JSON file, to reproduce the calculation later</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="menu_show_pdf">
+   <property name="text">
+    <string>Show &amp;pdf</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
+   </property>
+  </action>
+  <action name="menu_save_tranci">
+   <property name="text">
+    <string>Save &amp;data</string>
+   </property>
+   <property name="toolTip">
+    <string>Copy the summary, the .OUT data files and the parameters used into ./tranci_data</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
+   </property>
+  </action>
+  <action name="quit_tranci">
+   <property name="text">
+    <string>&amp;Quit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="show_manual">
+   <property name="text">
+    <string>&amp;Manual</string>
+   </property>
+   <property name="toolTip">
+    <string>Open the user manual (doc/tranci_manual.pdf)</string>
+   </property>
+   <property name="shortcut">
+    <string>F1</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
